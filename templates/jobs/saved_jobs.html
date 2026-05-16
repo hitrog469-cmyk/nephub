@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}Saved Jobs | NepHub{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--blue-d),var(--blue));padding:2.5rem 1.5rem;color:var(--white);">
+  <div class="container">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      {% icon 'bookmark' size=24 css='lc-icon' %}
+      <h1 style="font-size:1.8rem;font-weight:900;">Saved Jobs</h1>
+    </div>
+    <p style="opacity:.8;">Listings you have bookmarked — apply before deadlines close</p>
+  </div>
+</div>
+
+<div class="container" style="padding:2rem 1.5rem;">
+  {% if saved_jobs %}
+    <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:1.25rem;">{{ saved_jobs|length }} saved listing{{ saved_jobs|length|pluralize }}</p>
+    <div class="jobs-grid">
+      {% for saved in saved_jobs %}
+        {% with job=saved.job %}
+          {% include 'jobs/partials/job_card.html' %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="es-icon">{% icon 'bookmark' size=40 %}</div>
+      <h3>No saved jobs yet</h3>
+      <p>Use the save button on any listing to bookmark it here for quick access.</p>
+      <a href="/" class="btn btn-primary" style="margin-top:1rem;">Browse Jobs</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

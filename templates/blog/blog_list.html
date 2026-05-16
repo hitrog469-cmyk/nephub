@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}Blog & News — Career Tips, Loksewa Updates | NepHub{% endblock %}
+
+{% block content %}
+
+<div style="background:linear-gradient(135deg,var(--gray-900),var(--gray-800));padding:3rem 1.5rem;color:var(--white);text-align:center;">
+  <div class="container">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:5px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;margin-bottom:1rem;">
+      {% icon 'newspaper' size=14 %} NepHub Blog
+    </div>
+    <h1 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;margin-bottom:0.75rem;">News, Tips &amp; Career Advice</h1>
+    <p style="opacity:.75;max-width:520px;margin:0 auto;font-size:1rem;">Stay ahead with Loksewa updates, scholarship news, career tips and foreign employment guidance.</p>
+  </div>
+</div>
+
+<!-- Category Filter -->
+<div style="background:var(--white);border-bottom:1px solid var(--gray-200);padding:0.875rem 1.5rem;position:sticky;top:64px;z-index:100;">
+  <div class="container" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <span style="font-size:0.82rem;font-weight:600;color:var(--gray-500);margin-right:4px;">Filter:</span>
+    <a href="{% url 'blog_list' %}" class="chip {% if not selected_category %}active{% endif %}">All Articles</a>
+    {% for val, label in categories %}
+      <a href="?category={{ val }}" class="chip {% if selected_category == val %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="content-sidebar" style="padding-top:2rem;">
+  <main>
+    <!-- Featured Post -->
+    {% if featured and not selected_category %}
+    <div style="margin-bottom:2rem;">
+      <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:0.75rem;display:flex;align-items:center;gap:6px;">
+        {% icon 'star' size=13 %} Featured Article
+      </p>
+      <a href="{% url 'blog_detail' featured.slug %}"
+         style="display:block;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-xl);overflow:hidden;transition:box-shadow .2s,transform .2s;text-decoration:none;"
+         onmouseover="this.style.boxShadow='var(--shadow-lg)';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.boxShadow='';this.style.transform=''">
+        <div style="height:180px;display:flex;align-items:center;justify-content:center;
+          {% if featured.category == 'news' %}background:linear-gradient(135deg,#1e3a8a,var(--blue));
+          {% elif featured.category == 'tips' %}background:linear-gradient(135deg,#14532d,var(--cat-lok-color));
+          {% elif featured.category == 'scholarship_news' %}background:linear-gradient(135deg,#701a75,var(--cat-sch-color));
+          {% elif featured.category == 'loksewa_update' %}background:linear-gradient(135deg,#14532d,#22c55e);
+          {% else %}background:linear-gradient(135deg,#881337,var(--cat-for-color));{% endif %}">
+          {% if featured.category == 'news' %}{% icon 'newspaper' size=48 css='lc-icon' %}
+          {% elif featured.category == 'tips' %}{% icon 'lightbulb' size=48 css='lc-icon' %}
+          {% elif featured.category == 'scholarship_news' %}{% icon 'graduation-cap' size=48 css='lc-icon' %}
+          {% elif featured.category == 'loksewa_update' %}{% icon 'clipboard-list' size=48 css='lc-icon' %}
+          {% else %}{% icon 'plane' size=48 css='lc-icon' %}{% endif %}
+        </div>
+        <div style="padding:1.75rem;">
+          <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);margin-bottom:6px;">{{ featured.get_category_display }}</div>
+          <h2 style="font-size:1.3rem;font-weight:800;color:var(--gray-900);margin-bottom:8px;line-height:1.35;">{{ featured.title }}</h2>
+          <p style="color:var(--gray-500);font-size:0.9rem;line-height:1.7;margin-bottom:12px;">{{ featured.excerpt }}</p>
+          <div style="display:flex;gap:12px;font-size:0.78rem;color:var(--gray-400);align-items:center;flex-wrap:wrap;">
+            <span style="display:inline-flex;align-items:center;gap:4px;">{% icon 'user' size=12 %} {{ featured.author_name }}</span>
+            <span>·</span>
+            <span>{{ featured.published_at|date:"M d, Y" }}</span>
+            <span>·</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;">{% icon 'eye' size=12 %} {{ featured.views }}</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+
+    {% if posts %}
+      <div class="blog-grid">
+        {% for post in posts %}
+          {% include 'blog/partials/blog_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">{% icon 'file-text' size=40 %}</div>
+        <h3>No articles yet</h3>
+        <p>Check back soon — we publish new content regularly.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <aside class="sidebar">
+    {% include "partials/ad_block.html" %}
+
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'folder' size=14 %} Categories</div>
+      <div class="widget-body" style="padding:0.5rem;">
+        {% for val, label in categories %}
+        <a href="?category={{ val }}"
+           style="display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          <span>{{ label }}</span>
+          <span style="font-size:0.75rem;color:var(--gray-400);">→</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'briefcase' size=14 %} Browse Jobs</div>
+      <div class="widget-body" style="padding:0.5rem;">
+        {% for slug, label, icon_name in job_links %}
+        <a href="{% url 'category_page' slug %}"
+           style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          {% icon icon_name size=14 %}
+          <span>{{ label }}</span>
+        </a>
+        {% empty %}
+        <a href="{% url 'category_page' 'loksewa' %}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">{% icon 'clipboard-list' size=14 %} Loksewa Vacancies</a>
+        <a href="{% url 'category_page' 'scholarship' %}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">{% icon 'book-open' size=14 %} Scholarships</a>
+        <a href="{% url 'category_page' 'foreign' %}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">{% icon 'plane' size=14 %} Foreign Employment</a>
+        <a href="{% url 'cv_page' %}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">{% icon 'file-text' size=14 %} Upload Your CV</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% include "partials/ad_block.html" %}
+  </aside>
+</div>
+{% endblock %}

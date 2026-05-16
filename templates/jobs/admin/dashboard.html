@@ -1,0 +1,131 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stat cards -->
+<div class="adm-stats">
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#eff6ff;">{% icon 'briefcase' size=20 %}</div>
+    <div class="adm-stat-num">{{ active_jobs }}</div>
+    <div class="adm-stat-label">Active Jobs</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#fef9c3;">{% icon 'clock' size=20 %}</div>
+    <div class="adm-stat-num">{{ urgent_jobs }}</div>
+    <div class="adm-stat-label">Closing in 3 Days</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#fdf4ff;">{% icon 'star' size=20 %}</div>
+    <div class="adm-stat-num">{{ featured_jobs }}</div>
+    <div class="adm-stat-label">Featured</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#fee2e2;">{% icon 'archive' size=20 %}</div>
+    <div class="adm-stat-num">{{ expired_jobs }}</div>
+    <div class="adm-stat-label">Expired</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#f0fdf4;">{% icon 'database' size=20 %}</div>
+    <div class="adm-stat-num">{{ total_jobs }}</div>
+    <div class="adm-stat-label">Total Jobs</div>
+  </div>
+</div>
+
+<!-- Category breakdown -->
+<div class="adm-card" style="margin-bottom:1.5rem;">
+  <div class="adm-card-header">
+    <span class="adm-card-title">{% icon 'layout-grid' size=16 %} Jobs by Category</span>
+    <a href="{% url 'admin_job_add' %}" class="adm-btn adm-btn-primary adm-btn-sm">{% icon 'plus' size=13 %} Add Job</a>
+  </div>
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Active</th>
+        <th>Expired</th>
+        <th>Total</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in cat_stats %}
+      <tr>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:8px;">
+            <span style="width:28px;height:28px;border-radius:8px;background:{{ cat.color }}20;display:inline-flex;align-items:center;justify-content:center;">
+              {% icon cat.icon size=14 %}
+            </span>
+            <strong>{{ cat.label }}</strong>
+          </span>
+        </td>
+        <td><span class="adm-badge adm-badge-green">{{ cat.active }}</span></td>
+        <td><span class="adm-badge adm-badge-gray">{{ cat.expired }}</span></td>
+        <td><strong>{{ cat.total }}</strong></td>
+        <td>
+          <a href="{% url 'admin_jobs' %}?category={{ cat.slug }}" class="adm-btn adm-btn-outline adm-btn-sm">View</a>
+          <a href="{% url 'admin_job_add' %}?category={{ cat.slug }}" class="adm-btn adm-btn-primary adm-btn-sm">+ Add</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Recent Jobs -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <span class="adm-card-title">{% icon 'clock' size=16 %} Recently Added</span>
+    <a href="{% url 'admin_jobs' %}" class="adm-btn adm-btn-outline adm-btn-sm">View All →</a>
+  </div>
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Organisation</th>
+        <th>Category</th>
+        <th>Deadline</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in recent_jobs %}
+      <tr>
+        <td>
+          <a href="{% url 'admin_job_edit' job.pk %}" style="font-weight:600;color:var(--gray-800);text-decoration:none;">
+            {{ job.title|truncatechars:45 }}
+          </a>
+        </td>
+        <td style="color:var(--gray-500);">{{ job.organization|truncatechars:30 }}</td>
+        <td><span class="adm-badge adm-badge-blue">{{ job.category|cat_label }}</span></td>
+        <td style="white-space:nowrap;">
+          {% if job.is_expired %}
+            <span style="color:var(--red);font-size:.82rem;">{{ job.deadline|date:"M d, Y" }}</span>
+          {% else %}
+            <span style="font-size:.82rem;">{{ job.deadline|date:"M d, Y" }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if job.is_active %}
+            <span class="adm-badge adm-badge-green">Active</span>
+          {% else %}
+            <span class="adm-badge adm-badge-gray">Inactive</span>
+          {% endif %}
+          {% if job.is_featured %}
+            <span class="adm-badge adm-badge-amber">Featured</span>
+          {% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+          <a href="{% url 'admin_job_edit' job.pk %}" class="adm-btn adm-btn-outline adm-btn-sm">Edit</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

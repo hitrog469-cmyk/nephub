@@ -1,0 +1,23 @@
+{% load job_extras %}
+<div class="blog-card">
+  <div class="blog-card-thumb blog-thumb-{{ post.category }}">
+    {% if post.category == 'news' %}{% icon 'newspaper' size=28 %}
+    {% elif post.category == 'tips' %}{% icon 'lightbulb' size=28 %}
+    {% elif post.category == 'scholarship_news' %}{% icon 'graduation-cap' size=28 %}
+    {% elif post.category == 'loksewa_update' %}{% icon 'clipboard-list' size=28 %}
+    {% elif post.category == 'foreign_news' %}{% icon 'plane' size=28 %}
+    {% else %}{% icon 'file-text' size=28 %}{% endif %}
+  </div>
+  <div class="blog-card-body">
+    <div class="blog-card-cat blog-cat-{{ post.category }}">{{ post.get_category_display }}</div>
+    <a href="{% url 'blog_detail' post.slug %}" class="blog-card-title">{{ post.title }}</a>
+    <p class="blog-card-excerpt">{{ post.excerpt|truncatechars:120 }}</p>
+    <div class="blog-card-meta">
+      <span style="display:inline-flex;align-items:center;gap:4px;">{% icon 'user' size=12 %} {{ post.author_name }}</span>
+      <span>·</span>
+      <span>{{ post.published_at|date:"M d, Y" }}</span>
+      <span>·</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;">{% icon 'eye' size=12 %} {{ post.views }}</span>
+    </div>
+  </div>
+</div>

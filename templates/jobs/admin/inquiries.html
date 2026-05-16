@@ -1,0 +1,131 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}Ad Inquiries{% endblock %}
+{% block topbar_title %}Ad Inquiries{% endblock %}
+
+{% block content %}
+
+<!-- Stats row -->
+<div class="adm-stats" style="margin-bottom:1.25rem;">
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#fee2e2;">{% icon 'inbox' size=20 %}</div>
+    <div class="adm-stat-num">{{ new_count }}</div>
+    <div class="adm-stat-label">New / Unread</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#eff6ff;">{% icon 'megaphone' size=20 %}</div>
+    <div class="adm-stat-num">{{ page_obj.paginator.count }}</div>
+    <div class="adm-stat-label">Total Inquiries</div>
+  </div>
+</div>
+
+<div class="adm-card">
+  <!-- Filter bar -->
+  <div class="adm-filter-bar">
+    <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;">
+      <select name="status" style="padding:.45rem .875rem;border:1.5px solid var(--gray-200);border-radius:6px;font-size:.82rem;font-family:inherit;background:#fff;outline:none;">
+        <option value="">All Status</option>
+        <option value="new"       {% if status_filter == 'new'       %}selected{% endif %}>New</option>
+        <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contacted</option>
+        <option value="closed"    {% if status_filter == 'closed'    %}selected{% endif %}>Closed</option>
+      </select>
+      <button type="submit" class="adm-btn adm-btn-primary">Filter</button>
+      {% if status_filter %}<a href="{% url 'admin_inquiries' %}" class="adm-btn adm-btn-outline">Clear</a>{% endif %}
+      <span style="margin-left:auto;font-size:.82rem;color:var(--gray-500);">
+        {{ page_obj.paginator.count }} inquir{{ page_obj.paginator.count|pluralize:"y,ies" }}
+      </span>
+    </form>
+  </div>
+
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Contact</th>
+        <th>Ad Type</th>
+        <th>Message</th>
+        <th>Received</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inq in inquiries %}
+      <tr>
+        <td>
+          <div style="font-weight:700;color:var(--gray-900);font-size:.875rem;">{{ inq.company_name }}</div>
+        </td>
+        <td>
+          <div style="font-size:.82rem;">{{ inq.contact_name|default:"—" }}</div>
+          <a href="mailto:{{ inq.email }}" style="font-size:.78rem;color:var(--blue);">{{ inq.email }}</a>
+          {% if inq.phone %}<div style="font-size:.75rem;color:var(--gray-400);">{{ inq.phone }}</div>{% endif %}
+        </td>
+        <td>
+          <span class="adm-badge adm-badge-blue">{{ inq.get_ad_type_display }}</span>
+        </td>
+        <td style="max-width:220px;">
+          <span style="font-size:.78rem;color:var(--gray-600);">{{ inq.message|truncatechars:80|default:"(no message)" }}</span>
+        </td>
+        <td style="white-space:nowrap;font-size:.78rem;color:var(--gray-500);">
+          {{ inq.submitted_at|date:"M d, Y" }}<br>
+          <span style="color:var(--gray-400);">{{ inq.submitted_at|date:"H:i" }}</span>
+        </td>
+        <td>
+          {% if inq.status == 'new' %}
+            <span class="adm-badge adm-badge-red">New</span>
+          {% elif inq.status == 'contacted' %}
+            <span class="adm-badge adm-badge-amber">Contacted</span>
+          {% else %}
+            <span class="adm-badge adm-badge-gray">Closed</span>
+          {% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+          <a href="mailto:{{ inq.email }}?subject=Re: Advertising on NepHub&body=Hi {{ inq.contact_name|default:inq.company_name }},%0A%0AThank you for your interest in advertising on NepHub.%0A%0A"
+             class="adm-btn adm-btn-primary adm-btn-sm">{% icon 'mail' size=12 %} Reply</a>
+          {% if inq.status != 'contacted' %}
+          <form method="post" action="{% url 'admin_inquiry_status' inq.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="contacted">
+            <button type="submit" class="adm-btn adm-btn-outline adm-btn-sm">Contacted</button>
+          </form>
+          {% endif %}
+          {% if inq.status != 'closed' %}
+          <form method="post" action="{% url 'admin_inquiry_status' inq.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="closed">
+            <button type="submit" class="adm-btn adm-btn-outline adm-btn-sm">Close</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;padding:2.5rem;color:var(--gray-400);">
+          No inquiries yet. They'll appear here when businesses submit the <a href="{% url 'advertise' %}" target="_blank">advertise form</a>.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div class="adm-pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}" class="adm-page-btn">← Prev</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="adm-page-btn current">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&status={{ status_filter }}" class="adm-page-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}" class="adm-page-btn">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

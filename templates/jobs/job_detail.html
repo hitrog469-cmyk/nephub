@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}{{ job.title }} — {{ job.organization }} | NepHub{% endblock %}
+{% block meta_desc %}{{ job.title }} at {{ job.organization }}. Deadline: {{ job.deadline|date:"F d, Y" }}.{% endblock %}
+
+{% block content %}
+<div class="content-sidebar">
+
+  <!-- Main -->
+  <main>
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="sep">›</span>
+      <a href="{% url 'category_page' job.category %}">{{ job.category|cat_label }}</a>
+      <span class="sep">›</span>
+      <span style="color:var(--gray-700);">{{ job.title|truncatechars:50 }}</span>
+    </div>
+
+    <div class="detail-card">
+      <!-- Header -->
+      <div class="detail-header" style="background:linear-gradient(135deg,var(--gray-50),var(--white));">
+        <div style="display:flex;align-items:flex-start;gap:1.25rem;flex-wrap:wrap;">
+          <div class="job-cat-icon cat-icon-{{ job.category }}" style="width:64px;height:64px;border-radius:var(--radius-lg);">
+            {% icon job.category|cat_icon size=32 %}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+              <span class="badge badge-{{ job.category }}">{{ job.category|cat_label }}</span>
+              {% if job.is_featured %}<span class="badge badge-featured">{% icon 'star' size=11 %} Featured</span>{% endif %}
+              <span class="verified-tag">{% icon 'shield-check' size=12 %} Verified Listing</span>
+            </div>
+            <h1 style="font-size:1.4rem;font-weight:900;color:var(--gray-900);margin-bottom:4px;line-height:1.3;">{{ job.title }}</h1>
+            <p style="font-size:1rem;color:var(--gray-600);margin-bottom:10px;">{{ job.organization }}</p>
+            {% with urgency=job.urgency_label %}
+            <span class="deadline-tag dl-{{ urgency }}" style="font-size:0.875rem;">
+              {% icon 'calendar' size=13 %}
+              {% if urgency == 'expired' %}Deadline passed — {{ job.deadline|date:"F d, Y" }}
+              {% elif urgency == 'today' %}Deadline is TODAY — Apply now
+              {% elif urgency == 'urgent' %}{{ job.days_left }} day{{ job.days_left|pluralize }} remaining — Apply soon
+              {% elif urgency == 'soon' %}{{ job.days_left }} days remaining — {{ job.deadline|date:"F d, Y" }}
+              {% else %}Deadline: {{ job.deadline|date:"F d, Y" }}{% endif %}
+            </span>
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="detail-body">
+        <div class="detail-meta-grid">
+          <div class="meta-item">
+            <label>Organisation</label>
+            <span>{{ job.organization }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Category</label>
+            <span>{{ job.category|cat_label }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Application Deadline</label>
+            <span>{{ job.deadline|date:"F d, Y" }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Date Posted</label>
+            <span>{{ job.date_posted|date:"F d, Y" }}</span>
+          </div>
+          {% if job.source %}
+          <div class="meta-item">
+            <label>Source</label>
+            <span>{{ job.source }}</span>
+          </div>
+          {% endif %}
+          <div class="meta-item">
+            <label>Views</label>
+            <span>{{ job.views }}</span>
+          </div>
+        </div>
+
+        {% if job.description %}
+        <div style="margin-top:1.5rem;">
+          <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:0.875rem;">About This Position</h3>
+          <div style="color:var(--gray-700);line-height:1.8;font-size:0.95rem;white-space:pre-wrap;">{{ job.description }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--gray-100);">
+          {% if not job.is_expired and job.apply_link %}
+            <a href="{{ job.apply_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+              Apply Now — {{ job.organization }} →
+            </a>
+          {% elif job.is_expired %}
+            <span class="btn btn-outline btn-lg" style="opacity:.5;cursor:not-allowed;">Application Closed</span>
+          {% endif %}
+
+          {% if user.is_authenticated %}
+            <a href="{% url 'save_job' job.pk %}?next=/job/{{ job.pk }}/"
+               class="btn {% if is_saved %}btn-red{% else %}btn-outline{% endif %} btn-lg">
+              {% icon 'heart' size=16 css='save-icon' %}
+              {% if is_saved %}Saved{% else %}Save{% endif %}
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}?next=/job/{{ job.pk }}/" class="btn btn-outline btn-lg">
+              {% icon 'heart' size=16 %} Save
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Note -->
+        <div style="margin-top:1.25rem;padding:12px 16px;background:var(--gray-50);border-radius:var(--radius);border-left:3px solid var(--blue);">
+          <p style="font-size:0.82rem;color:var(--gray-500);line-height:1.6;display:flex;gap:8px;align-items:flex-start;">
+            <span style="flex-shrink:0;margin-top:1px;">{% icon 'alert-circle' size=14 %}</span>
+            <span><strong style="color:var(--gray-700);">Important:</strong> Always verify job details on the official source before applying. NepHub lists jobs from verified publishers but applicants should confirm requirements directly with the hiring organisation.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <!-- Ad -->
+    {% include "partials/ad_block.html" %}
+
+    <!-- Related Jobs -->
+    {% if related %}
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'briefcase' size=14 %} Similar {{ job.category|cat_label }}</div>
+      <div class="widget-body" style="padding:0.5rem;display:flex;flex-direction:column;gap:4px;">
+        {% for rjob in related %}
+        <a href="{% url 'job_detail' rjob.pk %}"
+           style="display:block;padding:10px;border-radius:var(--radius);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          <div style="font-size:0.875rem;font-weight:600;color:var(--gray-800);line-height:1.3;margin-bottom:3px;">{{ rjob.title|truncatechars:55 }}</div>
+          <div style="font-size:0.78rem;color:var(--gray-500);">{{ rjob.organization }}</div>
+          {% with u=rjob.urgency_label %}
+          <div class="deadline-tag dl-{{ u }}" style="font-size:0.73rem;margin-top:3px;display:inline-flex;align-items:center;gap:4px;">
+            {% icon 'calendar' size=11 %}
+            {% if u == 'today' %}Today{% elif u == 'urgent' %}{{ rjob.days_left }}d left{% else %}{{ rjob.deadline|date:"M d" }}{% endif %}
+          </div>
+          {% endwith %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Back -->
+    <a href="{% url 'category_page' job.category %}" class="btn btn-outline btn-full">
+      ← All {{ job.category|cat_label }}
+    </a>
+
+    <!-- Second Ad -->
+    {% include "partials/ad_block.html" %}
+
+  </aside>
+</div>
+{% endblock %}

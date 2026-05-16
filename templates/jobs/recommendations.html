@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}Job Recommendations for You | NepHub{% endblock %}
+{% block meta_desc %}Personalised job recommendations based on your saved jobs and profile.{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div style="background:linear-gradient(135deg,var(--blue-d),var(--blue));padding:3rem 1.5rem;color:var(--white);text-align:center;">
+  <div class="container">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:600;margin-bottom:1rem;">
+      {% icon 'sparkles' size=14 css='lc-icon' %} Personalised For You
+    </div>
+    <h1 style="font-size:clamp(1.5rem,4vw,2.2rem);font-weight:900;margin-bottom:.75rem;">
+      Your Job <em style="font-style:normal;color:#fcd34d;">Recommendations</em>
+    </h1>
+    <p style="opacity:.8;max-width:520px;margin:0 auto;font-size:1rem;">
+      Based on your profile, bio and saved jobs — curated opportunities that match your interests.
+    </p>
+  </div>
+</div>
+
+<div class="content-sidebar" style="padding-top:2rem;">
+
+  <!-- Main -->
+  <main>
+
+    {% if not has_bio %}
+    <!-- No-bio nudge -->
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:12px;">
+      {% icon 'lightbulb' size=20 %}
+      <div>
+        <p style="font-weight:700;color:var(--gray-800);margin-bottom:3px;">Improve your recommendations</p>
+        <p style="font-size:.875rem;color:var(--gray-600);line-height:1.6;">
+          Add a short bio to your profile describing your skills and experience — we'll use it to surface better-matching jobs.
+          <a href="{% url 'profile' %}" style="color:var(--blue);font-weight:600;margin-left:4px;">Update Profile →</a>
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if recommended %}
+      <p style="font-size:.875rem;color:var(--gray-500);margin-bottom:1.25rem;">
+        <strong style="color:var(--gray-800);">{{ recommended|length }}</strong> job{{ recommended|length|pluralize }} matched your profile
+      </p>
+      <div class="jobs-grid">
+        {% for job in recommended %}
+          {% include 'jobs/partials/job_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">{% icon 'search' size=40 %}</div>
+        <h3>No recommendations yet</h3>
+        <p>Save some jobs or add skills to your bio and we'll find matching opportunities for you.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1.25rem;">
+          <a href="/" class="btn btn-primary">Browse Jobs</a>
+          <a href="{% url 'profile' %}" class="btn btn-outline">Update Profile</a>
+        </div>
+      </div>
+    {% endif %}
+
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <!-- Ad -->
+    {% include "partials/ad_block.html" %}
+
+    <!-- How it works -->
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'settings' size=14 %} How Recommendations Work</div>
+      <div class="widget-body">
+        <ul style="display:flex;flex-direction:column;gap:10px;">
+          <li style="display:flex;gap:8px;font-size:.85rem;color:var(--gray-600);line-height:1.5;">
+            <span style="color:var(--blue);flex-shrink:0;font-weight:700;margin-top:1px;">1.</span>
+            We analyse keywords in your <strong>profile bio</strong>
+          </li>
+          <li style="display:flex;gap:8px;font-size:.85rem;color:var(--gray-600);line-height:1.5;">
+            <span style="color:var(--blue);flex-shrink:0;font-weight:700;margin-top:1px;">2.</span>
+            We look at tags from your <strong>saved jobs</strong>
+          </li>
+          <li style="display:flex;gap:8px;font-size:.85rem;color:var(--gray-600);line-height:1.5;">
+            <span style="color:var(--blue);flex-shrink:0;font-weight:700;margin-top:1px;">3.</span>
+            Jobs with the highest match score appear first
+          </li>
+        </ul>
+        <a href="{% url 'profile' %}" class="btn btn-outline btn-sm btn-full" style="margin-top:1rem;display:inline-flex;align-items:center;gap:6px;">
+          {% icon 'edit-2' size=14 %} Edit Profile
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'layout-grid' size=14 %} Browse Categories</div>
+      <div class="widget-body" style="padding:.5rem;">
+        {% for slug, meta in categories_meta.items %}
+        <a href="{% url 'category_page' slug %}"
+           style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);font-size:.875rem;color:var(--gray-700);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          {% icon meta.icon size=15 %}
+          <span>{{ meta.label }}</span>
+          <span style="margin-left:auto;font-size:.75rem;color:var(--gray-400);">{{ cat_counts|cat_count:slug }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Second ad -->
+    {% include "partials/ad_block.html" %}
+
+  </aside>
+</div>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+{% load job_extras %}
+{# Drop-in replacement for every .ad-block placeholder. Links to /advertise/ inquiry form. #}
+<a href="{% url 'advertise' %}" class="ad-cta-block" title="Advertise on NepHub">
+  <div class="ad-cta-icon">{% icon 'megaphone' size=22 %}</div>
+  <div class="ad-cta-label">Your Ad Here</div>
+  <div class="ad-cta-sub">Reach thousands of Nepali job seekers</div>
+  <div class="ad-cta-btn">Advertise →</div>
+</a>

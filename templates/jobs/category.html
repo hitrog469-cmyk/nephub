@@ -1,0 +1,500 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}{{ meta.label }} in Nepal | NepHub{% endblock %}
+{% block meta_desc %}Find {{ meta.label|lower }} in Nepal. {{ meta.desc }}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Advanced Filter Panel ─────────────────────────────────────── */
+.adv-filter-wrap {
+  background: #fff;
+  border-bottom: 1.5px solid var(--gray-200);
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.adv-filter-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* — Row 1: Search + Sort + Count — */
+.adv-filter-row1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 8px;
+  flex-wrap: wrap;
+}
+.adv-filter-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+.adv-filter-search input {
+  width: 100%;
+  padding: 9px 14px 9px 38px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+.adv-filter-search input:focus { border-color: var(--blue); }
+.adv-filter-search-icon {
+  position: absolute;
+  left: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+  font-size: 1rem;
+}
+.adv-sort-select {
+  padding: 9px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  color: var(--gray-700);
+}
+.adv-sort-select:focus { border-color: var(--blue); }
+.adv-filter-btn-search {
+  padding: 9px 20px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.adv-filter-btn-search:hover { background: #1d4ed8; }
+.adv-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: #fff;
+  color: var(--gray-600);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  font-weight: 500;
+}
+.adv-toggle-btn:hover { border-color: var(--blue); color: var(--blue); background: #eff6ff; }
+.adv-toggle-btn.has-active { border-color: var(--blue); color: var(--blue); background: #eff6ff; font-weight: 600; }
+.adv-result-count {
+  font-size: 0.82rem;
+  color: var(--gray-400);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* — Row 2: Advanced filter dropdowns — */
+.adv-filter-row2 {
+  display: none;
+  gap: 10px;
+  padding: 0 0 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  border-top: 1px solid var(--gray-100);
+  padding-top: 12px;
+  margin-top: 2px;
+}
+.adv-filter-row2.open { display: flex; }
+.adv-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+.adv-filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.adv-filter-group select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: #fff;
+  color: var(--gray-700);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.adv-filter-group select:focus { border-color: var(--blue); }
+.adv-filter-group select.has-value { border-color: var(--blue); background: #eff6ff; color: var(--blue); font-weight: 500; }
+.adv-filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
+.btn-clear-all {
+  padding: 8px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: #fff;
+  color: var(--gray-500);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all .15s;
+}
+.btn-clear-all:hover { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+
+/* — Active filter tags — */
+.active-tags-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 0 10px;
+  align-items: center;
+}
+.active-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: #eff6ff;
+  color: var(--blue);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+}
+.active-tag a {
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1;
+  opacity: .6;
+}
+.active-tag a:hover { opacity: 1; }
+.active-tags-label {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+
+/* — Popular tags chips — */
+.tag-chips-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 0 12px;
+  border-top: 1px solid var(--gray-100);
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  text-decoration: none;
+  transition: all .15s;
+  border: 1px solid transparent;
+}
+.tag-chip:hover, .tag-chip.active {
+  background: #eff6ff;
+  color: var(--blue);
+  border-color: #bfdbfe;
+}
+
+/* ── Nav tab badge ── */
+.nav-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.25);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  margin-left: 4px;
+  min-width: 20px;
+}
+
+/* ── Mobile section label ── */
+.mobile-nav-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.4);
+  padding: 10px 1.25rem 4px;
+  pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Category Hero -->
+<div class="cat-hero cat-hero-{{ category_slug }}">
+  <div class="cat-hero-inner">
+    <div class="cat-hero-icon">{% icon meta.icon size=36 css="cat-hero-lc" %}</div>
+    <div class="cat-hero-text">
+      <h1>{{ meta.label }}</h1>
+      <p>{{ meta.desc }}</p>
+    </div>
+    <div class="cat-hero-stats">
+      <div class="cat-hero-stat">
+        <span class="cat-hero-stat-num">{{ total_count }}</span>
+        <span class="cat-hero-stat-label">Total Listings</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Advanced Filter Bar ── -->
+<div class="adv-filter-wrap">
+  <div class="adv-filter-inner">
+    <form method="get" id="filter-form">
+
+      <!-- Row 1: Search + Sort + Toggle -->
+      <div class="adv-filter-row1">
+        <div class="adv-filter-search">
+          <span class="adv-filter-search-icon">{% icon 'search' size=14 %}</span>
+          <input type="text" name="q" value="{{ query }}"
+                 placeholder="Search {{ meta.label|lower }}…"
+                 id="search-input">
+        </div>
+
+        <select name="sort" class="adv-sort-select" onchange="this.form.submit()">
+          <option value="deadline" {% if sort == 'deadline' or not sort %}selected{% endif %}>Sort: Deadline</option>
+          <option value="newest"   {% if sort == 'newest'   %}selected{% endif %}>Sort: Newest</option>
+          <option value="views"    {% if sort == 'views'    %}selected{% endif %}>Sort: Popular</option>
+        </select>
+
+        <button type="submit" class="adv-filter-btn-search">Search</button>
+
+        <button type="button" class="adv-toggle-btn {% if active_filters.location or active_filters.job_type or active_filters.experience or active_filters.posted_within or active_filters.tags %}has-active{% endif %}"
+                id="adv-toggle-btn" onclick="toggleAdvFilters()">
+          {% icon 'sliders-horizontal' size=14 %} Filters
+          {% if active_filters.location or active_filters.job_type or active_filters.experience or active_filters.posted_within or active_filters.tags %}
+            <span style="background:var(--blue);color:#fff;border-radius:20px;padding:1px 7px;font-size:.72rem;font-weight:700;">
+              {{ active_filters.location|yesno:'1,0'|add:active_filters.job_type|yesno:'1,0' }}
+              ON
+            </span>
+          {% endif %}
+        </button>
+
+        <span class="adv-result-count">{{ total_count }} result{{ total_count|pluralize }}</span>
+      </div>
+
+      <!-- Row 2: Advanced Filters (collapsible) -->
+      <div class="adv-filter-row2 {% if active_filters.location or active_filters.job_type or active_filters.experience or active_filters.posted_within %}open{% endif %}"
+           id="adv-panel">
+
+        <!-- Province / Location -->
+        <div class="adv-filter-group">
+          <label>Location</label>
+          <select name="location" class="{% if active_filters.location %}has-value{% endif %}">
+            <option value="">All Provinces</option>
+            {% for val, label in province_choices %}
+            <option value="{{ val }}" {% if active_filters.location == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Job Type -->
+        <div class="adv-filter-group">
+          <label>Job Type</label>
+          <select name="job_type" class="{% if active_filters.job_type %}has-value{% endif %}">
+            <option value="">All Types</option>
+            {% for val, label in job_type_choices %}
+            <option value="{{ val }}" {% if active_filters.job_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Experience Level -->
+        <div class="adv-filter-group">
+          <label>Experience</label>
+          <select name="experience" class="{% if active_filters.experience %}has-value{% endif %}">
+            <option value="">Any Level</option>
+            {% for val, label in exp_choices %}
+            <option value="{{ val }}" {% if active_filters.experience == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Posted Within -->
+        <div class="adv-filter-group">
+          <label>Posted Within</label>
+          <select name="posted_within" class="{% if active_filters.posted_within %}has-value{% endif %}">
+            <option value="">Any Time</option>
+            <option value="1"  {% if active_filters.posted_within == '1'  %}selected{% endif %}>Today</option>
+            <option value="3"  {% if active_filters.posted_within == '3'  %}selected{% endif %}>Last 3 Days</option>
+            <option value="7"  {% if active_filters.posted_within == '7'  %}selected{% endif %}>Last Week</option>
+            <option value="30" {% if active_filters.posted_within == '30' %}selected{% endif %}>Last Month</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="adv-filter-actions">
+          <button type="submit" class="adv-filter-btn-search">Apply</button>
+          {% if query or active_filters.location or active_filters.job_type or active_filters.experience or active_filters.posted_within or active_filters.tags %}
+          <a href="{% url 'category_page' category_slug %}" class="btn-clear-all">Clear All</a>
+          {% endif %}
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Active Filter Tags -->
+    {% if query or active_filters.location or active_filters.job_type or active_filters.experience or active_filters.posted_within %}
+    <div class="active-tags-row">
+      <span class="active-tags-label">Active:</span>
+      {% if query %}
+        <span class="active-tag">"{{ query }}" <a href="?{% if active_filters.location %}location={{ active_filters.location }}&{% endif %}{% if active_filters.job_type %}job_type={{ active_filters.job_type }}&{% endif %}{% if active_filters.experience %}experience={{ active_filters.experience }}&{% endif %}{% if active_filters.posted_within %}posted_within={{ active_filters.posted_within }}&{% endif %}sort={{ sort }}">×</a></span>
+      {% endif %}
+      {% if active_filters.location %}
+        <span class="active-tag">{{ active_filters.location }} <a href="?{% if query %}q={{ query }}&{% endif %}{% if active_filters.job_type %}job_type={{ active_filters.job_type }}&{% endif %}{% if active_filters.experience %}experience={{ active_filters.experience }}&{% endif %}{% if active_filters.posted_within %}posted_within={{ active_filters.posted_within }}&{% endif %}sort={{ sort }}">×</a></span>
+      {% endif %}
+      {% if active_filters.job_type %}
+        <span class="active-tag">{{ active_filters.job_type|title }} <a href="?{% if query %}q={{ query }}&{% endif %}{% if active_filters.location %}location={{ active_filters.location }}&{% endif %}{% if active_filters.experience %}experience={{ active_filters.experience }}&{% endif %}{% if active_filters.posted_within %}posted_within={{ active_filters.posted_within }}&{% endif %}sort={{ sort }}">×</a></span>
+      {% endif %}
+      {% if active_filters.experience %}
+        <span class="active-tag">{{ active_filters.experience|title }} <a href="?{% if query %}q={{ query }}&{% endif %}{% if active_filters.location %}location={{ active_filters.location }}&{% endif %}{% if active_filters.job_type %}job_type={{ active_filters.job_type }}&{% endif %}{% if active_filters.posted_within %}posted_within={{ active_filters.posted_within }}&{% endif %}sort={{ sort }}">×</a></span>
+      {% endif %}
+      {% if active_filters.posted_within %}
+        <span class="active-tag">
+          {% if active_filters.posted_within == '1' %}Today
+          {% elif active_filters.posted_within == '3' %}Last 3 Days
+          {% elif active_filters.posted_within == '7' %}Last Week
+          {% elif active_filters.posted_within == '30' %}Last Month
+          {% endif %}
+          <a href="?{% if query %}q={{ query }}&{% endif %}{% if active_filters.location %}location={{ active_filters.location }}&{% endif %}{% if active_filters.job_type %}job_type={{ active_filters.job_type }}&{% endif %}{% if active_filters.experience %}experience={{ active_filters.experience }}&{% endif %}sort={{ sort }}">×</a>
+        </span>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Popular Tags Row -->
+    {% if popular_tags %}
+    <div class="tag-chips-row">
+      {% for tag in popular_tags %}
+      <a href="?{% if query %}q={{ query }}&{% endif %}tags={{ tag.slug }}&sort={{ sort }}"
+         class="tag-chip {% if tag.slug in active_filters.tags %}active{% endif %}">
+        #{{ tag.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Content + Sidebar -->
+<div class="content-sidebar" style="padding-top:1.75rem;">
+
+  <!-- Main -->
+  <main>
+    {% if jobs %}
+      <div class="jobs-grid">
+        {% for job in jobs %}
+          {% include 'jobs/partials/job_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">{% icon 'search' size=40 %}</div>
+        <h3>No {{ meta.label|lower }} found</h3>
+        <p>
+          {% if query or active_filters.location or active_filters.job_type or active_filters.experience %}
+            Try removing some filters or <a href="{% url 'category_page' category_slug %}">clear all</a>.
+          {% else %}
+            Check back soon — new listings are added daily.
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <!-- Ad Block -->
+    {% include "partials/ad_block.html" %}
+
+    <!-- Tips Widget -->
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'lightbulb' size=14 %} {{ meta.label }} Tips</div>
+      <div class="widget-body">
+        <ul style="display:flex;flex-direction:column;gap:10px;">
+          {% for tip in meta.tips %}
+          <li style="display:flex;gap:8px;font-size:0.85rem;color:var(--gray-600);line-height:1.5;">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px;">{% icon 'check' size=13 %}</span>
+            {{ tip }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Related Categories -->
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'layout-grid' size=14 %} Other Categories</div>
+      <div class="widget-body" style="padding:0.5rem;">
+        {% for slug, rmeta in related_cats.items %}
+        <a href="{% url 'category_page' slug %}"
+           style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          <span>{{ rmeta.icon }}</span>
+          <span>{{ rmeta.label }}</span>
+          <span style="margin-left:auto;font-size:0.75rem;color:var(--gray-400);">{{ cat_counts|cat_count:slug }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Second Ad -->
+    {% include "partials/ad_block.html" %}
+
+  </aside>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAdvFilters() {
+  const panel = document.getElementById('adv-panel');
+  const btn   = document.getElementById('adv-toggle-btn');
+  const open  = panel.classList.toggle('open');
+  btn.style.background = open ? '#eff6ff' : '';
+  btn.style.borderColor = open ? 'var(--blue)' : '';
+  btn.style.color = open ? 'var(--blue)' : '';
+}
+
+// Auto-submit selects in adv panel for instant feedback
+document.querySelectorAll('#adv-panel select').forEach(sel => {
+  sel.addEventListener('change', () => {
+    // Mark active selects with has-value class
+    if (sel.value) sel.classList.add('has-value');
+    else sel.classList.remove('has-value');
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load job_extras %}
+{% with urgency=job.urgency_label %}
+<div class="job-card {% if job.is_expired %}expired{% endif %}{% if job.is_featured %} featured{% endif %}">
+
+  <div class="job-cat-icon cat-icon-{{ job.category }}">{% icon job.category|cat_icon size=22 %}</div>
+
+  <div class="job-body">
+    <a href="{% url 'job_detail' job.pk %}" class="job-title">{{ job.title }}</a>
+    <div class="job-org">{{ job.organization }}</div>
+    <div class="job-meta">
+      <span class="badge badge-{{ job.category }}">{{ job.category|cat_label }}</span>
+      {% if job.is_featured %}<span class="badge badge-featured">{% icon 'star' size=11 %} Featured</span>{% endif %}
+      <span class="deadline-tag dl-{{ urgency }}">
+        {% icon 'calendar' size=12 %}
+        {% if urgency == 'expired' %}Expired {{ job.deadline|date:"M d" }}
+        {% elif urgency == 'today' %}Today — Last Day
+        {% elif urgency == 'urgent' %}{{ job.days_left }} day{{ job.days_left|pluralize }} left
+        {% elif urgency == 'soon' %}{{ job.deadline|date:"M d, Y" }}
+        {% else %}{{ job.deadline|date:"M d, Y" }}{% endif %}
+      </span>
+      {% if job.source %}<span style="color:var(--gray-400);font-size:0.73rem;">{{ job.source }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="job-actions">
+    {% if not job.is_expired and job.apply_link %}
+      <a href="{{ job.apply_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">Apply →</a>
+    {% endif %}
+    {% if user.is_authenticated %}
+      <a href="{% url 'save_job' job.pk %}?next={{ request.get_full_path }}"
+         class="btn-save btn-sm {% if job.pk in saved_job_ids %}saved{% endif %}"
+         title="{% if job.pk in saved_job_ids %}Unsave{% else %}Save{% endif %}">
+        {% icon 'heart' size=16 css='save-icon' %}
+      </a>
+    {% else %}
+      <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn-save btn-sm" title="Login to save">
+        {% icon 'heart' size=16 css='save-icon' %}
+      </a>
+    {% endif %}
+  </div>
+
+</div>
+{% endwith %}

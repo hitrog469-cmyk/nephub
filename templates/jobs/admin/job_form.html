@@ -1,0 +1,377 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}{% if job %}Edit Job{% else %}Add Job{% endif %}{% endblock %}
+{% block topbar_title %}{% if job %}Edit Job{% else %}Add New Job{% endif %}{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px;">
+
+  <!-- Breadcrumb -->
+  <div style="font-size:.82rem;color:var(--gray-400);margin-bottom:1.25rem;display:flex;align-items:center;gap:.4rem;">
+    <a href="{% url 'admin_dashboard' %}" style="color:var(--gray-400);text-decoration:none;">Dashboard</a>
+    <span>›</span>
+    <a href="{% url 'admin_jobs' %}" style="color:var(--gray-400);text-decoration:none;">Jobs</a>
+    <span>›</span>
+    <span style="color:var(--gray-600);">{% if job %}Edit: {{ job.title|truncatechars:40 }}{% else %}Add New Job{% endif %}</span>
+  </div>
+
+  <form method="post" id="job-form">
+    {% csrf_token %}
+
+    <!-- Non-field errors -->
+    {% if form.non_field_errors %}
+    <div class="adm-alert adm-alert-danger" style="margin-bottom:1rem;">
+      {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── Row 1: Basic Info ── -->
+    <div class="adm-card" style="margin-bottom:1.25rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title">{% icon 'file-text' size=16 %} Basic Information</span>
+      </div>
+      <div class="adm-form-grid">
+
+        <!-- Title (full width) -->
+        <div class="adm-field adm-field-full">
+          <label class="adm-label" for="{{ form.title.id_for_label }}">
+            Job Title <span class="adm-req">*</span>
+          </label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="adm-field-error">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Organisation -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.organization.id_for_label }}">
+            Organisation <span class="adm-req">*</span>
+          </label>
+          {{ form.organization }}
+          {% if form.organization.errors %}<div class="adm-field-error">{{ form.organization.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Category -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.category.id_for_label }}">
+            Category <span class="adm-req">*</span>
+          </label>
+          {{ form.category }}
+          {% if form.category.errors %}<div class="adm-field-error">{{ form.category.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Job Type -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.job_type.id_for_label }}">Job Type</label>
+          {{ form.job_type }}
+          {% if form.job_type.errors %}<div class="adm-field-error">{{ form.job_type.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Experience Level -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.experience_level.id_for_label }}">Experience Level</label>
+          {{ form.experience_level }}
+          {% if form.experience_level.errors %}<div class="adm-field-error">{{ form.experience_level.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Location -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.location.id_for_label }}">Location / Province</label>
+          {{ form.location }}
+          {% if form.location.errors %}<div class="adm-field-error">{{ form.location.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Source -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.source.id_for_label }}">
+            Source
+            <span style="font-weight:400;color:var(--gray-400);font-size:.78rem;">(e.g. moald.gov.np)</span>
+          </label>
+          {{ form.source }}
+          {% if form.source.errors %}<div class="adm-field-error">{{ form.source.errors.0 }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Row 2: Dates & Links ── -->
+    <div class="adm-card" style="margin-bottom:1.25rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title">{% icon 'calendar' size=16 %} Dates &amp; Links</span>
+      </div>
+      <div class="adm-form-grid">
+
+        <!-- Deadline -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.deadline.id_for_label }}">
+            Application Deadline <span class="adm-req">*</span>
+          </label>
+          {{ form.deadline }}
+          {% if form.deadline.errors %}<div class="adm-field-error">{{ form.deadline.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Apply Link -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.apply_link.id_for_label }}">Apply Link / URL</label>
+          {{ form.apply_link }}
+          {% if form.apply_link.errors %}<div class="adm-field-error">{{ form.apply_link.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Salary Min -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.salary_min.id_for_label }}">
+            Min Salary
+            <span style="font-weight:400;color:var(--gray-400);font-size:.78rem;">(NPR / month)</span>
+          </label>
+          {{ form.salary_min }}
+          {% if form.salary_min.errors %}<div class="adm-field-error">{{ form.salary_min.errors.0 }}</div>{% endif %}
+        </div>
+
+        <!-- Salary Max -->
+        <div class="adm-field">
+          <label class="adm-label" for="{{ form.salary_max.id_for_label }}">
+            Max Salary
+            <span style="font-weight:400;color:var(--gray-400);font-size:.78rem;">(NPR / month)</span>
+          </label>
+          {{ form.salary_max }}
+          {% if form.salary_max.errors %}<div class="adm-field-error">{{ form.salary_max.errors.0 }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Row 3: Description ── -->
+    <div class="adm-card" style="margin-bottom:1.25rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title">{% icon 'align-left' size=16 %} Description &amp; Requirements</span>
+      </div>
+      <div style="padding:0 1.5rem 1.5rem;">
+
+        <div class="adm-field adm-field-full" style="margin-bottom:1rem;">
+          <label class="adm-label" for="{{ form.description.id_for_label }}">
+            Job Description <span class="adm-req">*</span>
+          </label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="adm-field-error">{{ form.description.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="adm-field adm-field-full">
+          <label class="adm-label" for="{{ form.requirements.id_for_label }}">Requirements</label>
+          {{ form.requirements }}
+          {% if form.requirements.errors %}<div class="adm-field-error">{{ form.requirements.errors.0 }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Row 4: Visibility & Tags ── -->
+    <div class="adm-card" style="margin-bottom:1.25rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title">{% icon 'settings' size=16 %} Visibility &amp; Tags</span>
+      </div>
+      <div style="padding:0 1.5rem 1.5rem;">
+
+        <!-- Toggles row -->
+        <div style="display:flex;gap:2rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+          <label class="adm-toggle-row">
+            <span class="adm-label" style="margin-bottom:0;">Active</span>
+            <span style="font-size:.78rem;color:var(--gray-400);display:block;margin-top:1px;">Show on public site</span>
+            <div class="adm-toggle-wrap">
+              {{ form.is_active }}
+              <span class="adm-toggle-ui"></span>
+            </div>
+          </label>
+          <label class="adm-toggle-row">
+            <span class="adm-label" style="margin-bottom:0;">Featured</span>
+            <span style="font-size:.78rem;color:var(--gray-400);display:block;margin-top:1px;">Pin to top of listings</span>
+            <div class="adm-toggle-wrap">
+              {{ form.is_featured }}
+              <span class="adm-toggle-ui"></span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label class="adm-label">Tags / Keywords</label>
+          <div class="adm-tags-grid">
+            {% for cb in form.tags %}
+            <label class="adm-tag-chip {% if cb.data.selected %}checked{% endif %}">
+              {{ cb.tag }} {{ cb.choice_label }}
+            </label>
+            {% endfor %}
+          </div>
+          {% if form.tags.errors %}<div class="adm-field-error" style="margin-top:.5rem;">{{ form.tags.errors.0 }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Submit bar ── -->
+    <div class="adm-form-actions">
+      <a href="{% url 'admin_jobs' %}" class="adm-btn adm-btn-outline">Cancel</a>
+      <div style="display:flex;gap:.5rem;">
+        {% if job %}
+        <a href="{% url 'job_detail' job.pk %}" target="_blank" class="adm-btn adm-btn-outline">
+          {% icon 'external-link' size=14 %} View on Site
+        </a>
+        {% endif %}
+        <button type="submit" class="adm-btn adm-btn-primary">
+          {% icon 'save' size=14 %} {% if job %}Save Changes{% else %}Create Job{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<style>
+/* ── Form grid ── */
+.adm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+  padding: 0 1.5rem 1.5rem;
+}
+.adm-field { display: flex; flex-direction: column; gap: .35rem; }
+.adm-field-full { grid-column: 1 / -1; }
+.adm-label { font-size: .82rem; font-weight: 600; color: var(--gray-700); }
+.adm-req   { color: #ef4444; }
+.adm-field-error { font-size:.75rem; color:#ef4444; margin-top:.2rem; }
+
+/* Override .admin-input */
+.admin-input,
+input[name], select[name], textarea[name] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: .5rem .75rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .875rem;
+  color: var(--gray-800);
+  background: #fff;
+  transition: border-color .15s;
+  font-family: inherit;
+}
+.admin-input:focus,
+input[name]:focus, select[name]:focus, textarea[name]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px #2563eb18;
+}
+textarea.admin-input { resize: vertical; min-height: 120px; }
+
+/* Toggle rows */
+.adm-toggle-row {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+}
+.adm-toggle-wrap {
+  margin-top: .5rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.adm-toggle-wrap input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.adm-toggle-ui {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--gray-200);
+  display: inline-block;
+  position: relative;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.adm-toggle-ui::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.adm-toggle-wrap input:checked ~ .adm-toggle-ui {
+  background: var(--primary);
+}
+.adm-toggle-wrap input:checked ~ .adm-toggle-ui::after {
+  transform: translateX(18px);
+}
+
+/* Tags grid */
+.adm-tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .5rem;
+  margin-top: .4rem;
+}
+.adm-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .65rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 20px;
+  font-size: .78rem;
+  color: var(--gray-600);
+  background: #fff;
+  cursor: pointer;
+  transition: all .15s;
+}
+.adm-tag-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.adm-tag-chip input[type="checkbox"] {
+  display: none;
+}
+/* Checked state handled via JS below */
+.adm-tag-chip.is-checked {
+  border-color: var(--primary);
+  background: #eff6ff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Actions bar */
+.adm-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+/* Alert */
+.adm-alert { padding:.75rem 1rem; border-radius:8px; font-size:.875rem; }
+.adm-alert-danger { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+
+@media (max-width: 640px) {
+  .adm-form-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+// Styled tag checkboxes
+document.querySelectorAll('.adm-tag-chip').forEach(chip => {
+  const cb = chip.querySelector('input[type="checkbox"]');
+  if (cb && cb.checked) chip.classList.add('is-checked');
+  chip.addEventListener('click', () => {
+    setTimeout(() => {
+      chip.classList.toggle('is-checked', cb.checked);
+    }, 0);
+  });
+});
+</script>
+
+{% endblock %}

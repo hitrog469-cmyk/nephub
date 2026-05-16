@@ -1,0 +1,111 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}Subscribers{% endblock %}
+{% block topbar_title %}Email Subscribers{% endblock %}
+
+{% block content %}
+
+<div class="adm-stats" style="margin-bottom:1.25rem;">
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#f0fdf4;">{% icon 'bell' size=20 %}</div>
+    <div class="adm-stat-num">{{ total_verified }}</div>
+    <div class="adm-stat-label">Verified Subscribers</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#f8fafc;">{% icon 'mail' size=20 %}</div>
+    <div class="adm-stat-num">{{ total_subs }}</div>
+    <div class="adm-stat-label">Total Sign-ups</div>
+  </div>
+</div>
+
+<div class="adm-card">
+  <!-- Filter -->
+  <div class="adm-filter-bar">
+    <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;">
+      <select name="status" style="padding:.45rem .875rem;border:1.5px solid var(--gray-200);border-radius:6px;font-size:.82rem;font-family:inherit;background:#fff;outline:none;">
+        <option value="">All</option>
+        <option value="verified"   {% if status_filter == 'verified'   %}selected{% endif %}>Verified Only</option>
+        <option value="unverified" {% if status_filter == 'unverified' %}selected{% endif %}>Unverified Only</option>
+      </select>
+      <button type="submit" class="adm-btn adm-btn-primary">Filter</button>
+      {% if status_filter %}<a href="{% url 'admin_subscribers' %}" class="adm-btn adm-btn-outline">Clear</a>{% endif %}
+      <span style="margin-left:auto;font-size:.82rem;color:var(--gray-500);">
+        {{ page_obj.paginator.count }} subscriber{{ page_obj.paginator.count|pluralize }}
+      </span>
+    </form>
+  </div>
+
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Categories</th>
+        <th>Verified</th>
+        <th>Signed Up</th>
+        <th>Linked Account</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in subscribers %}
+      <tr>
+        <td>
+          <a href="mailto:{{ sub.email }}" style="font-weight:600;color:var(--blue);font-size:.875rem;">{{ sub.email }}</a>
+        </td>
+        <td>
+          {% if sub.subscribed_categories %}
+            {% for cat in sub.subscribed_categories %}
+              <span class="adm-badge adm-badge-blue" style="margin:1px;">{{ cat|cat_label }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="font-size:.75rem;color:var(--gray-400);">All categories</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if sub.is_verified %}
+            <span class="adm-badge adm-badge-green">{% icon 'check' size=11 %} Verified</span>
+          {% else %}
+            <span class="adm-badge adm-badge-gray">Pending</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.78rem;color:var(--gray-500);white-space:nowrap;">
+          {{ sub.created_at|date:"M d, Y" }}
+        </td>
+        <td style="font-size:.78rem;color:var(--gray-500);">
+          {% if sub.user %}
+            <span style="display:flex;align-items:center;gap:.3rem;">{% icon 'user' size=12 %} {{ sub.user.username }}</span>
+          {% else %}
+            <span style="color:var(--gray-400);">Guest</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;padding:2.5rem;color:var(--gray-400);">
+          No subscribers yet. They'll appear when someone subscribes via the <a href="{% url 'subscribe_alerts' %}">job alerts page</a>.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div class="adm-pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}" class="adm-page-btn">← Prev</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="adm-page-btn current">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&status={{ status_filter }}" class="adm-page-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}" class="adm-page-btn">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

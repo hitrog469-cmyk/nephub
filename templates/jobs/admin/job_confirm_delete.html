@@ -1,0 +1,81 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}Delete Job{% endblock %}
+{% block topbar_title %}Delete Job{% endblock %}
+
+{% block content %}
+
+<div style="max-width:560px;margin:0 auto;">
+
+  <!-- Breadcrumb -->
+  <div style="font-size:.82rem;color:var(--gray-400);margin-bottom:1.5rem;display:flex;align-items:center;gap:.4rem;">
+    <a href="{% url 'admin_dashboard' %}" style="color:var(--gray-400);text-decoration:none;">Dashboard</a>
+    <span>›</span>
+    <a href="{% url 'admin_jobs' %}" style="color:var(--gray-400);text-decoration:none;">Jobs</a>
+    <span>›</span>
+    <span style="color:var(--gray-600);">Delete</span>
+  </div>
+
+  <div class="adm-card">
+    <!-- Warning header -->
+    <div style="padding:2rem 2rem 1.25rem;text-align:center;border-bottom:1px solid var(--gray-100);">
+      <div style="width:56px;height:56px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        {% icon 'trash-2' size=24 css='color:#dc2626;' %}
+      </div>
+      <h2 style="margin:0 0 .5rem;font-size:1.15rem;font-weight:700;color:var(--gray-900);">Delete this job?</h2>
+      <p style="margin:0;font-size:.875rem;color:var(--gray-500);">This action cannot be undone.</p>
+    </div>
+
+    <!-- Job preview -->
+    <div style="padding:1.25rem 2rem;border-bottom:1px solid var(--gray-100);background:var(--gray-50);">
+      <div style="font-weight:700;font-size:.95rem;color:var(--gray-900);margin-bottom:.3rem;">
+        {{ job.title }}
+      </div>
+      <div style="font-size:.82rem;color:var(--gray-500);display:flex;flex-wrap:wrap;gap:.75rem;">
+        <span style="display:flex;align-items:center;gap:.3rem;">
+          {% icon 'building-2' size=13 %} {{ job.organization }}
+        </span>
+        <span style="display:flex;align-items:center;gap:.3rem;">
+          {% icon 'tag' size=13 %} {{ job.category|capfirst }}
+        </span>
+        <span style="display:flex;align-items:center;gap:.3rem;">
+          {% icon 'calendar' size=13 %} Deadline: {{ job.deadline|date:"M d, Y" }}
+        </span>
+        <span style="display:flex;align-items:center;gap:.3rem;">
+          {% icon 'eye' size=13 %} {{ job.views }} views
+        </span>
+      </div>
+    </div>
+
+    <!-- Confirmation message -->
+    <div style="padding:1.25rem 2rem;border-bottom:1px solid var(--gray-100);">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:#92400e;display:flex;gap:.5rem;align-items:flex-start;">
+        {% icon 'alert-triangle' size=15 css='flex-shrink:0;margin-top:1px;' %}
+        <span>
+          Deleting this job will permanently remove it from the site and all saved lists.
+          {% if job.views > 0 %}This job has {{ job.views }} view{{ job.views|pluralize }} on record.{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="padding:1.25rem 2rem;display:flex;justify-content:flex-end;gap:.75rem;">
+      <a href="{% url 'admin_jobs' %}" class="adm-btn adm-btn-outline">
+        Cancel
+      </a>
+      <a href="{% url 'admin_job_edit' job.pk %}" class="adm-btn adm-btn-outline">
+        {% icon 'edit-2' size=13 %} Edit Instead
+      </a>
+      <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="adm-btn adm-btn-danger">
+          {% icon 'trash-2' size=13 %} Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

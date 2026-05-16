@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}Search{% if query %}: "{{ query }}"{% endif %} | NepHub{% endblock %}
+
+{% block content %}
+<div style="background:var(--blue);padding:2rem 1.5rem;color:var(--white);">
+  <div class="container">
+    <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1rem;">
+      {% if query %}Results for "{{ query }}"{% else %}Browse All Jobs{% endif %}
+    </h1>
+    <form class="search-box" method="get" action="/search/" style="max-width:640px;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search jobs..." autocomplete="off">
+      <select name="category" class="search-select">
+        <option value="">All Categories</option>
+        {% for slug, meta in categories_meta.items %}
+        <option value="{{ slug }}" {% if category == slug %}selected{% endif %}>{{ meta.label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+  </div>
+</div>
+
+<div class="content-sidebar">
+  <main>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;">
+      <p style="font-size:0.9rem;color:var(--gray-500);">
+        <strong style="color:var(--gray-800);">{{ total_count }}</strong> result{{ total_count|pluralize }} found
+        {% if category %} in <strong>{{ category|cat_label }}</strong>{% endif %}
+      </p>
+      {% if query or category %}
+        <a href="/search/" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px;">
+          {% icon 'x' size=13 %} Clear filters
+        </a>
+      {% endif %}
+    </div>
+
+    {% if jobs %}
+      <div class="jobs-grid">
+        {% for job in jobs %}{% include 'jobs/partials/job_card.html' %}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">{% icon 'search' size=40 %}</div>
+        <h3>No results found</h3>
+        <p>Try different keywords or browse a category below.</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+          {% for slug, meta in categories_meta.items %}
+          <a href="{% url 'category_page' slug %}" class="btn btn-outline btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+            {% icon meta.icon size=14 %} {{ meta.label }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </main>
+
+  <aside class="sidebar">
+    {% include "partials/ad_block.html" %}
+    <div class="sidebar-widget">
+      <div class="widget-header">{% icon 'layout-grid' size=14 %} Browse Categories</div>
+      <div class="widget-body" style="padding:0.5rem;">
+        {% for slug, meta in categories_meta.items %}
+        <a href="{% url 'category_page' slug %}"
+           style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);font-size:0.875rem;color:var(--gray-700);transition:background .15s;"
+           onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          {% icon meta.icon size=15 %}
+          <span>{{ meta.label }}</span>
+          <span style="margin-left:auto;font-size:0.75rem;color:var(--gray-400);">{{ cat_counts|cat_count:slug }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% include "partials/ad_block.html" %}
+  </aside>
+</div>
+{% endblock %}

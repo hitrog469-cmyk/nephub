@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load job_extras %}
+
+{% block title %}About NepHub — Nepal's Trusted Job Portal{% endblock %}
+
+{% block content %}
+
+<div class="about-hero">
+  <div class="container">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:5px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;margin-bottom:1.25rem;">
+      🇳🇵 Made for Nepal
+    </div>
+    <h1>Nepal's Most Trusted<br>Job Aggregator</h1>
+    <p style="margin-top:1rem;">NepHub brings together government vacancies, Loksewa exams, private sector jobs, scholarships and foreign employment — verified, free, and always up to date.</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="stats-showcase">
+      <div class="stat-box">
+        <div class="stat-box-num">{{ stats.total_jobs }}+</div>
+        <div class="stat-box-label">Active Listings</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-num">7</div>
+        <div class="stat-box-label">Job Categories</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-num">{{ stats.organizations }}+</div>
+        <div class="stat-box-label">Organisations</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-num">100%</div>
+        <div class="stat-box-label">Free Service</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mission -->
+<section class="section">
+  <div class="container" style="max-width:760px;">
+    <h2 class="section-title" style="margin-bottom:1.25rem;">Our <span>Mission</span></h2>
+    <div style="font-size:1rem;color:var(--gray-600);line-height:1.9;display:flex;flex-direction:column;gap:1rem;">
+      <p>Nepal's job market is fragmented across dozens of government websites, private portals, and social media pages. Job seekers waste hours checking multiple sources, missing deadlines, and falling for misleading ads.</p>
+      <p><strong style="color:var(--gray-800);">NepHub solves this.</strong> We aggregate verified opportunities from official government ministries, the Public Service Commission, DOFE-approved agencies, and trusted private employers — all in one place, updated daily.</p>
+      <p>We believe every Nepali deserves access to good employment information without paying a rupee. NepHub is and will always be <strong style="color:var(--green);">completely free</strong> for job seekers.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header" style="justify-content:center;text-align:center;display:block;margin-bottom:2.5rem;">
+      <h2 class="section-title">What Makes <span>NepHub</span> Different</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#eff6ff;display:flex;align-items:center;justify-content:center;">{% icon 'shield-check' size=24 %}</div>
+        <h3>Verified Sources Only</h3>
+        <p>Every job is sourced from official government websites, PSC Nepal, DOFE, and verified company pages. We never list unverified or suspicious postings.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f0fdf4;display:flex;align-items:center;justify-content:center;">{% icon 'gift' size=24 %}</div>
+        <h3>Always Free</h3>
+        <p>No subscription fees, no premium tiers, no pay-to-view listings. NepHub is funded through advertising — job seekers never pay anything.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fff7ed;display:flex;align-items:center;justify-content:center;">{% icon 'clock' size=24 %}</div>
+        <h3>Deadline-First Sorting</h3>
+        <p>Jobs are sorted by deadline so the most urgent opportunities always appear first. Never miss a closing date again.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdf4ff;display:flex;align-items:center;justify-content:center;">{% icon 'layout-grid' size=24 %}</div>
+        <h3>7 Specialised Categories</h3>
+        <p>Government, Loksewa, Private, Scholarship, Internship, Opportunity and Foreign Employment — each with dedicated pages, tips, and resources.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fff1f2;display:flex;align-items:center;justify-content:center;">{% icon 'file-text' size=24 %}</div>
+        <h3>CV Management</h3>
+        <p>Upload and manage your CV in one place. Free for all registered users — no storage limits, no expiry.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fef9c3;display:flex;align-items:center;justify-content:center;">{% icon 'book-open' size=24 %}</div>
+        <h3>Career Knowledge Hub</h3>
+        <p>Our blog covers Loksewa prep tips, scholarship guidance, foreign employment rights, and Nepali job market news.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust -->
+<section class="section">
+  <div class="container" style="max-width:760px;text-align:center;">
+    <h2 class="section-title" style="margin-bottom:1rem;">Trusted by Nepali <span>Job Seekers</span></h2>
+    <p style="color:var(--gray-500);margin-bottom:2.5rem;">We take trust seriously. Here's our commitment to you.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+      {% for item in "No fake listings|No hidden fees|No spam emails|Official sources only|DOFE-verified foreign jobs|Daily updates"|split:"|" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:1rem;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);">
+        {% icon 'check-circle' size=18 %}
+        <span style="font-size:0.875rem;font-weight:600;color:var(--gray-700);">{{ item }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-title">Start Browsing Jobs — It's Free</h2>
+    <p class="cta-desc">No account needed to browse. Create a free account to save jobs and upload your CV.</p>
+    <div class="cta-actions">
+      <a href="/" class="btn btn-xl btn-outline-white">Browse Jobs</a>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'signup' %}" class="btn btn-xl btn-red">Sign Up Free →</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

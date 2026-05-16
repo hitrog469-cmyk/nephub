@@ -1,0 +1,901 @@
+{% extends 'base.html' %}
+{% load static %}{% load job_extras %}
+
+{% block title %}NepHub — Nepal's Job, Scholarship & Opportunity Portal{% endblock %}
+{% block meta_desc %}Find government jobs, Loksewa vacancies, private sector careers, scholarships, internships and foreign employment in Nepal — all verified, all free.{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ══════════════════════════════════════
+   HOME PAGE — Custom Styles
+══════════════════════════════════════ */
+
+/* ── Hero ── */
+.hero-v2 {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-v2::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.hero-v2-inner { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; }
+
+.hero-v2-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 40px;
+  padding: 6px 18px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.9);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.hero-v2-eyebrow-dot {
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.hero-v2 h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 1.1rem;
+  letter-spacing: -.02em;
+}
+.hero-v2 h1 em {
+  font-style: normal;
+  color: #fbbf24;
+}
+.hero-v2-sub {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,.75);
+  margin-bottom: 2.2rem;
+  line-height: 1.6;
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Search box */
+.hero-search-form {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border-radius: 50px;
+  padding: 5px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  max-width: 640px;
+  margin: 0 auto 1.75rem;
+}
+.hero-search-form input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #1e293b;
+  border-radius: 40px 0 0 40px;
+}
+.hero-search-form select {
+  border: none;
+  border-left: 1.5px solid #e2e8f0;
+  outline: none;
+  padding: 12px 14px;
+  font-size: 0.875rem;
+  color: #475569;
+  background: transparent;
+  cursor: pointer;
+}
+.hero-search-form button {
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+  letter-spacing: .01em;
+}
+.hero-search-form button:hover { background: #1e40af; }
+
+/* Quick links */
+.hero-quick-links {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+.hero-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.85);
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: all .15s;
+  font-weight: 500;
+}
+.hero-quick-link:hover {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+}
+
+/* Hero stats */
+.hero-stats-v2 {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.hero-stat-v2 { text-align: center; }
+.hero-stat-v2-num {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+.hero-stat-v2-label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* ── Trust Bar ── */
+.trust-bar-v2 {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 1.5rem;
+}
+.trust-bar-v2-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.trust-item-v2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #475569;
+  font-weight: 500;
+}
+.trust-item-v2 .ti-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Section styles ── */
+.home-section {
+  padding: 4rem 1.5rem;
+}
+.home-section-alt {
+  background: #f8fafc;
+}
+.home-container { max-width: 1280px; margin: 0 auto; }
+
+.home-section-hd {
+  margin-bottom: 2.5rem;
+}
+.home-section-hd-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.section-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #2563eb;
+  margin-bottom: 6px;
+}
+.section-eyebrow-line {
+  width: 24px;
+  height: 2px;
+  background: #2563eb;
+  border-radius: 2px;
+}
+.home-h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+.home-h2 span { color: #2563eb; }
+.home-h2-sub {
+  font-size: 0.925rem;
+  color: #64748b;
+  margin-top: 5px;
+}
+.view-all-v2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: gap .15s;
+}
+.view-all-v2:hover { gap: 8px; }
+
+/* ── Category Grid ── */
+.cat-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1rem;
+}
+.cat-card-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.75rem 1rem 1.5rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all .2s;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.cat-card-v2:hover {
+  border-color: var(--cat-color, #2563eb);
+  box-shadow: 0 8px 32px rgba(0,0,0,.09);
+  transform: translateY(-3px);
+}
+.cat-card-v2-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cat-light, #eff6ff);
+  flex-shrink: 0;
+}
+.cat-card-v2-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+.cat-card-v2-count {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--cat-color, #2563eb);
+  line-height: 1;
+}
+.cat-card-v2-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.cat-card-v2-cta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cat-color, #2563eb);
+  margin-top: 4px;
+}
+
+/* ── How it works ── */
+.steps-v2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+.step-v2 {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  position: relative;
+  transition: box-shadow .2s;
+}
+.step-v2:hover { box-shadow: 0 8px 32px rgba(0,0,0,.08); }
+.step-v2-num {
+  width: 40px; height: 40px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+}
+.step-v2-icon-wrap {
+  width: 48px; height: 48px;
+  background: #eff6ff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
+}
+.step-v2 h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.step-v2 p {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* ── Feature cards ── */
+.feature-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+.feature-card-v2 {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.75rem;
+  transition: box-shadow .2s;
+}
+.feature-card-v2:hover { box-shadow: 0 8px 28px rgba(0,0,0,.08); }
+.feature-card-v2-icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.feature-card-v2 h3 {
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+.feature-card-v2 p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.65;
+}
+
+/* ── Alert signup band ── */
+.alert-band {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.alert-band h2 {
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.alert-band p {
+  color: rgba(255,255,255,.7);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.alert-form-inline {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.alert-form-inline input[type="email"] {
+  flex: 1;
+  min-width: 220px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+}
+.alert-form-inline button {
+  padding: 12px 24px;
+  background: #fbbf24;
+  color: #1e293b;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.alert-form-inline button:hover { background: #f59e0b; }
+
+/* ── CTA band ── */
+.cta-v2 {
+  background: #0f172a;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+.cta-v2 h2 {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -.02em;
+  margin-bottom: 10px;
+}
+.cta-v2 p {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin-bottom: 1.75rem;
+}
+.cta-v2-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.cta-v2-btns .btn-primary-v2 {
+  padding: 13px 32px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background .15s;
+}
+.cta-v2-btns .btn-primary-v2:hover { background: #1d4ed8; }
+.cta-v2-btns .btn-ghost-v2 {
+  padding: 13px 32px;
+  border: 1.5px solid #334155;
+  color: #94a3b8;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all .15s;
+}
+.cta-v2-btns .btn-ghost-v2:hover { border-color: #64748b; color: #e2e8f0; }
+
+/* ── Popular tags ── */
+.popular-tags-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.popular-tag {
+  padding: 6px 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all .15s;
+}
+.popular-tag:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+
+/* ── Blog grid ── */
+.blog-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero-v2">
+  <div class="hero-v2-inner">
+
+    <div class="hero-v2-eyebrow">
+      <span class="hero-v2-eyebrow-dot"></span>
+      Nepal's Job &amp; Opportunity Portal — Free Service
+    </div>
+
+    <h1>Your Next Opportunity<br>Starts <em>Here</em></h1>
+    <p class="hero-v2-sub">
+      Government vacancies, Loksewa exams, private careers, scholarships, internships and foreign employment — all verified, all in one place.
+    </p>
+
+    <form class="hero-search-form" method="get" action="/search/">
+      <input type="text" name="q" placeholder="Search jobs, organisations, keywords…" autocomplete="off">
+      <select name="category">
+        <option value="">All Categories</option>
+        <option value="government">Government</option>
+        <option value="loksewa">Loksewa</option>
+        <option value="private">Private</option>
+        <option value="scholarship">Scholarship</option>
+        <option value="internship">Internship</option>
+        <option value="opportunity">Opportunity</option>
+        <option value="foreign">Foreign Employment</option>
+      </select>
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="hero-quick-links">
+      <a href="{% url 'category_page' 'government' %}" class="hero-quick-link">Government Jobs</a>
+      <a href="{% url 'category_page' 'loksewa' %}" class="hero-quick-link">Loksewa</a>
+      <a href="{% url 'category_page' 'scholarship' %}" class="hero-quick-link">Scholarships</a>
+      <a href="{% url 'category_page' 'internship' %}" class="hero-quick-link">Internships</a>
+      <a href="{% url 'category_page' 'foreign' %}" class="hero-quick-link">Foreign Employment</a>
+    </div>
+
+    <div class="hero-stats-v2">
+      <div class="hero-stat-v2">
+        <span class="hero-stat-v2-num">{{ total_active }}+</span>
+        <span class="hero-stat-v2-label">Active Listings</span>
+      </div>
+      <div class="hero-stat-v2">
+        <span class="hero-stat-v2-num">7</span>
+        <span class="hero-stat-v2-label">Categories</span>
+      </div>
+      <div class="hero-stat-v2">
+        <span class="hero-stat-v2-num">{{ urgent_count }}+</span>
+        <span class="hero-stat-v2-label">Closing Soon</span>
+      </div>
+      <div class="hero-stat-v2">
+        <span class="hero-stat-v2-num">100%</span>
+        <span class="hero-stat-v2-label">Free</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     TRUST BAR
+══════════════════════════════════════ -->
+<div class="trust-bar-v2">
+  <div class="trust-bar-v2-inner">
+    <div class="trust-item-v2">
+      <span class="ti-icon" style="background:#dcfce7;">{% icon 'shield-check' size=13 css='' %}</span>
+      Verified job sources
+    </div>
+    <div class="trust-item-v2">
+      <span class="ti-icon" style="background:#eff6ff;">{% icon 'refresh-cw' size=13 css='' %}</span>
+      Updated daily
+    </div>
+    <div class="trust-item-v2">
+      <span class="ti-icon" style="background:#fef9c3;">{% icon 'lock' size=13 css='' %}</span>
+      Safe &amp; secure
+    </div>
+    <div class="trust-item-v2">
+      <span class="ti-icon" style="background:#fff7ed;">{% icon 'smartphone' size=13 css='' %}</span>
+      Mobile friendly
+    </div>
+    <div class="trust-item-v2">
+      <span class="ti-icon" style="background:#fdf4ff;">{% icon 'gift' size=13 css='' %}</span>
+      No registration required to browse
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     BROWSE BY CATEGORY
+══════════════════════════════════════ -->
+<section class="home-section">
+  <div class="home-container">
+
+    <div class="home-section-hd">
+      <div class="home-section-hd-inner">
+        <div>
+          <div class="section-eyebrow"><span class="section-eyebrow-line"></span> Browse by Category</div>
+          <h2 class="home-h2">Find the Right <span>Opportunity</span> for You</h2>
+          <p class="home-h2-sub">Explore Nepal's most comprehensive listing of jobs, scholarships and opportunities — all in one place.</p>
+        </div>
+        <a href="/search/" class="view-all-v2">See all listings →</a>
+      </div>
+    </div>
+
+    <div class="cat-grid-v2">
+      {% for slug, meta in categories_meta.items %}
+      <a href="{% url 'category_page' slug %}" class="cat-card-v2"
+         style="--cat-color:{{ meta.color }};--cat-light:{{ meta.light }};">
+        <div class="cat-card-v2-icon">
+          {% icon meta.icon size=26 %}
+        </div>
+        <div class="cat-card-v2-name">{{ meta.label }}</div>
+        <div class="cat-card-v2-count">{{ cat_counts|cat_count:slug }}</div>
+        <div class="cat-card-v2-label">active listings</div>
+        <div class="cat-card-v2-cta">Browse →</div>
+      </a>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════ -->
+<section class="home-section home-section-alt">
+  <div class="home-container">
+
+    <div class="home-section-hd" style="text-align:center; margin-bottom:2.5rem;">
+      <div class="section-eyebrow" style="justify-content:center;"><span class="section-eyebrow-line"></span> Simple Process</div>
+      <h2 class="home-h2">How <span>NepHub</span> Works</h2>
+      <p class="home-h2-sub">Find and apply to your next opportunity in three simple steps</p>
+    </div>
+
+    <div class="steps-v2">
+      <div class="step-v2">
+        <div class="step-v2-num">1</div>
+        <div class="step-v2-icon-wrap">{% icon 'search' size=22 %}</div>
+        <h3>Browse &amp; Search</h3>
+        <p>Search thousands of verified listings across government, Loksewa, private and international categories — no login required.</p>
+      </div>
+      <div class="step-v2">
+        <div class="step-v2-num">2</div>
+        <div class="step-v2-icon-wrap">{% icon 'bookmark' size=22 %}</div>
+        <h3>Save Favourites</h3>
+        <p>Create a free account to save interesting listings, upload your CV and receive deadline alerts before opportunities close.</p>
+      </div>
+      <div class="step-v2">
+        <div class="step-v2-num">3</div>
+        <div class="step-v2-icon-wrap">{% icon 'send' size=22 %}</div>
+        <h3>Apply Directly</h3>
+        <p>Every listing links to the official application page. No middlemen, no fees — 100% free for all job seekers in Nepal.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     CLOSING SOON
+══════════════════════════════════════ -->
+{% if urgent_jobs %}
+<section class="home-section">
+  <div class="home-container">
+
+    <div class="home-section-hd">
+      <div class="home-section-hd-inner">
+        <div>
+          <div class="section-eyebrow" style="color:#dc2626;"><span class="section-eyebrow-line" style="background:#dc2626;"></span> Deadline Approaching</div>
+          <h2 class="home-h2">Closing <span style="color:#dc2626;">Soon</span></h2>
+          <p class="home-h2-sub">Apply now — deadlines within 7 days</p>
+        </div>
+        <a href="/search/?sort=deadline" class="view-all-v2">View all urgent →</a>
+      </div>
+    </div>
+
+    <div class="jobs-grid">
+      {% for job in urgent_jobs %}
+        {% include 'jobs/partials/job_card.html' %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     FEATURED LISTINGS
+══════════════════════════════════════ -->
+{% if featured_jobs %}
+<section class="home-section home-section-alt">
+  <div class="home-container">
+
+    <div class="home-section-hd">
+      <div class="home-section-hd-inner">
+        <div>
+          <div class="section-eyebrow"><span class="section-eyebrow-line"></span> Hand-picked</div>
+          <h2 class="home-h2">Featured <span>Opportunities</span></h2>
+          <p class="home-h2-sub">Top listings selected across all categories</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="jobs-grid">
+      {% for job in featured_jobs %}
+        {% include 'jobs/partials/job_card.html' %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     LATEST LISTINGS
+══════════════════════════════════════ -->
+<section class="home-section {% if not featured_jobs %}home-section-alt{% endif %}">
+  <div class="home-container">
+
+    <div class="home-section-hd">
+      <div class="home-section-hd-inner">
+        <div>
+          <div class="section-eyebrow"><span class="section-eyebrow-line"></span> Fresh</div>
+          <h2 class="home-h2">Latest <span>Listings</span></h2>
+          <p class="home-h2-sub">Newly added opportunities — posted this week</p>
+        </div>
+        <a href="/search/" class="view-all-v2">View all jobs →</a>
+      </div>
+    </div>
+
+    <div class="jobs-grid">
+      {% for job in latest_jobs %}
+        {% include 'jobs/partials/job_card.html' %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     WHY NEPHUB
+══════════════════════════════════════ -->
+<section class="home-section home-section-alt">
+  <div class="home-container">
+
+    <div class="home-section-hd" style="text-align:center; margin-bottom:2.5rem;">
+      <div class="section-eyebrow" style="justify-content:center;"><span class="section-eyebrow-line"></span> Why NepHub</div>
+      <h2 class="home-h2">Built for <span>Nepali</span> Job Seekers</h2>
+      <p class="home-h2-sub">We built this for Nepal — trusted, transparent, and always free</p>
+    </div>
+
+    <div class="feature-grid-v2">
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#dcfce7;">{% icon 'shield-check' size=22 %}</div>
+        <h3>100% Verified Sources</h3>
+        <p>Every listing is sourced from official government websites, PSC, DOFE, and verified company pages. No fake or misleading ads.</p>
+      </div>
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#eff6ff;">{% icon 'gift' size=22 %}</div>
+        <h3>Completely Free</h3>
+        <p>NepHub is and will always be free for job seekers. Browse, save, and apply with no hidden charges or premium tiers.</p>
+      </div>
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#fff7ed;">{% icon 'bell' size=22 %}</div>
+        <h3>Deadline Alerts</h3>
+        <p>Never miss a closing date. Subscribe to get email alerts tailored to the categories and keywords you care about.</p>
+      </div>
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#fdf4ff;">{% icon 'layout-grid' size=22 %}</div>
+        <h3>All-in-One Platform</h3>
+        <p>From Loksewa to foreign employment, government jobs to scholarships — seven categories, one platform, zero hassle.</p>
+      </div>
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#fff1f2;">{% icon 'smartphone' size=22 %}</div>
+        <h3>Mobile First</h3>
+        <p>Designed to work perfectly on any device. Browse opportunities on the go, anywhere in Nepal.</p>
+      </div>
+      <div class="feature-card-v2">
+        <div class="feature-card-v2-icon" style="background:#fef9c3;">{% icon 'zap' size=22 %}</div>
+        <h3>Fast &amp; Reliable</h3>
+        <p>Clean, fast-loading pages with no trackers or heavy scripts. Your data is never sold or shared with third parties.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     POPULAR TAGS
+══════════════════════════════════════ -->
+{% if popular_tags %}
+<section class="home-section" style="padding-top:2.5rem;padding-bottom:2.5rem;">
+  <div class="home-container" style="text-align:center;">
+    <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:1rem;">Popular Keywords</p>
+    <div class="popular-tags-row">
+      {% for tag in popular_tags %}
+      <a href="/search/?tags={{ tag.slug }}" class="popular-tag">#{{ tag.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     BLOG / NEWS
+══════════════════════════════════════ -->
+{% if latest_posts %}
+<section class="home-section home-section-alt">
+  <div class="home-container">
+
+    <div class="home-section-hd">
+      <div class="home-section-hd-inner">
+        <div>
+          <div class="section-eyebrow"><span class="section-eyebrow-line"></span> Resources</div>
+          <h2 class="home-h2">News &amp; <span>Career Tips</span></h2>
+          <p class="home-h2-sub">Stay informed with the latest career advice and job market updates</p>
+        </div>
+        <a href="{% url 'blog_list' %}" class="view-all-v2">All articles →</a>
+      </div>
+    </div>
+
+    <div class="blog-grid-v2">
+      {% for post in latest_posts %}
+        {% include 'blog/partials/blog_card.html' %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     JOB ALERT SIGNUP
+══════════════════════════════════════ -->
+<div class="alert-band">
+  <h2>Never Miss an Opportunity</h2>
+  <p>Get email alerts for the jobs and categories you care about — delivered straight to your inbox.</p>
+  <form class="alert-form-inline" method="post" action="{% url 'subscribe_alerts' %}">
+    {% csrf_token %}
+    <input type="email" name="email" placeholder="Enter your email address" required>
+    <button type="submit">Get Alerts</button>
+  </form>
+</div>
+
+<!-- ══════════════════════════════════════
+     FINAL CTA
+══════════════════════════════════════ -->
+<section class="cta-v2">
+  <div class="home-container">
+    <h2>Start Your Search Today</h2>
+    <p>Join thousands of Nepali job seekers who discover opportunities through NepHub every day. Always free.</p>
+    <div class="cta-v2-btns">
+      <a href="/search/" class="btn-ghost-v2">Browse All Listings</a>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'signup' %}" class="btn-primary-v2">Create Free Account →</a>
+      {% else %}
+        <a href="{% url 'saved_jobs' %}" class="btn-primary-v2">View Saved Jobs →</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
