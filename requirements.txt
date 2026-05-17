@@ -17,3 +17,5 @@ certifi==2025.6.15
 charset-normalizer==3.4.2
 idna==3.10
 urllib3==2.5.0
+psycopg2-binary==2.9.10
+dj-database-url==2.3.0
