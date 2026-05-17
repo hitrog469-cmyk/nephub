@@ -104,6 +104,10 @@ LOGOUT_REDIRECT_URL = '/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Security headers (active in production; no-op in DEBUG) ───────
+# Railway (and Heroku) terminate SSL at the load balancer and forward
+# requests to Django over plain HTTP with X-Forwarded-Proto: https.
+# Without this header, Django's SSL redirect causes an infinite loop.
+SECURE_PROXY_SSL_HEADER     = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT         = not DEBUG
 SESSION_COOKIE_SECURE       = not DEBUG
 CSRF_COOKIE_SECURE          = not DEBUG
