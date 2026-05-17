@@ -17,6 +17,9 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 _raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+ALLOWED_HOSTS.append('healthcheck.railway.app')
+if os.environ.get('RAILWAY_PUBLIC_DOMAIN'):
+    ALLOWED_HOSTS.append(os.environ['RAILWAY_PUBLIC_DOMAIN'])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
