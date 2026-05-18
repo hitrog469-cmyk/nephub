@@ -149,7 +149,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ── django-allauth config ──────────────────────────────────────────
-ACCOUNT_EMAIL_VERIFICATION      = 'none'  # no email confirmation step
+ACCOUNT_EMAIL_VERIFICATION      = os.environ.get('EMAIL_VERIFICATION', 'none')  # set to 'mandatory' in Railway once SMTP is configured
 ACCOUNT_DEFAULT_HTTP_PROTOCOL   = 'https' if not DEBUG else 'http'
 ACCOUNT_LOGIN_METHODS           = {'email'}
 ACCOUNT_SIGNUP_FIELDS           = ['email*', 'password1*', 'password2*']

@@ -58,20 +58,29 @@
 .p-name   { font-size: 1.1rem; font-weight: 800; color: var(--gray-900); }
 .p-email  { font-size: .8rem; color: var(--gray-400); margin-top: 2px; }
 
-/* ── Completion bar ── */
-.comp-bar-wrap {
-  height: 6px;
-  background: var(--gray-100);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: .5rem;
+/* ── Circular completion ring ── */
+.comp-ring-wrap {
+  position: relative; width: 84px; height: 84px; flex-shrink: 0;
 }
-.comp-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(to right, var(--blue), #34d399);
-  transition: width .5s ease;
+.comp-ring-wrap svg {
+  position: absolute; top: 0; left: 0;
+  transform: rotate(-90deg);
 }
+.comp-ring-pct {
+  position: absolute; bottom: -18px; left: 50%;
+  transform: translateX(-50%);
+  font-size: .65rem; font-weight: 800;
+  white-space: nowrap;
+}
+/* ── Unlock benefits list ── */
+.unlock-list { list-style: none; padding: 0; margin: 0; }
+.unlock-list li {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .72rem; color: var(--gray-500);
+  padding: .22rem 0;
+}
+.unlock-list li.done { color: #16a34a; }
+.unlock-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* ── Sidebar stat pills ── */
 .p-stat { display: flex; align-items: center; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid var(--gray-100); font-size: .82rem; }
@@ -156,9 +165,39 @@
     <!-- Identity card -->
     <div class="p-card">
       <div class="p-card-body">
-        <div style="display:flex;gap:.875rem;align-items:center;margin-bottom:1rem;">
-          <div class="p-avatar">{{ profile.display_name|first|upper }}</div>
-          <div style="min-width:0;">
+        <!-- Avatar + circular ring -->
+        <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.25rem;">
+
+          <!-- Ring + avatar -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:.25rem;flex-shrink:0;">
+            <div class="comp-ring-wrap">
+              {% with pct=profile.completion_pct %}
+              {% if pct >= 70 %}{% with color="#22c55e" %}
+              {% else %}{% if pct >= 40 %}{% with color="#f59e0b" %}
+              {% else %}{% with color="#3b82f6" %}
+              {% endif %}{% endif %}
+              <svg width="84" height="84" viewBox="0 0 84 84">
+                <circle cx="42" cy="42" r="37" fill="none" stroke="#e5e7eb" stroke-width="5"/>
+                <circle cx="42" cy="42" r="37" fill="none"
+                  stroke="{% if pct >= 70 %}#22c55e{% elif pct >= 40 %}#f59e0b{% else %}#3b82f6{% endif %}"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-dasharray="{{ pct|floatformat:0 }},100"
+                  pathLength="100"/>
+              </svg>
+              {% endwith %}{% if pct >= 40 %}{% endwith %}{% endif %}
+              {% endwith %}
+              <div class="p-avatar" style="position:absolute;top:6px;left:6px;width:72px;height:72px;font-size:1.6rem;">
+                {{ profile.display_name|first|upper }}
+              </div>
+            </div>
+            <span style="font-size:.7rem;font-weight:800;color:{% if profile.completion_pct >= 70 %}#16a34a{% elif profile.completion_pct >= 40 %}#d97706{% else %}var(--blue){% endif %};">
+              {{ profile.completion_pct }}% complete
+            </span>
+          </div>
+
+          <!-- Name / email -->
+          <div style="min-width:0;flex:1;">
             <div class="p-name">{{ profile.display_name }}</div>
             <div class="p-email">{{ user.email }}</div>
             {% if profile.location %}
@@ -169,18 +208,39 @@
           </div>
         </div>
 
-        <!-- Completion bar -->
-        <div style="font-size:.73rem;color:var(--gray-400);display:flex;justify-content:space-between;margin-bottom:.3rem;">
-          <span>Profile completeness</span>
-          <span style="font-weight:700;color:{% if profile.completion_pct >= 70 %}var(--green){% elif profile.completion_pct >= 40 %}#d97706{% else %}var(--gray-400){% endif %}">{{ profile.completion_pct }}%</span>
-        </div>
-        <div class="comp-bar-wrap">
-          <div class="comp-bar-fill" style="width:{{ profile.completion_pct }}%;"></div>
-        </div>
+        <!-- Unlock benefits -->
         {% if profile.completion_pct < 100 %}
-        <p style="font-size:.72rem;color:var(--gray-400);margin-top:.4rem;">
-          Complete your profile to get better recommendations.
-        </p>
+        <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:.75rem 1rem;margin-bottom:.5rem;">
+          <div style="font-size:.72rem;font-weight:700;color:var(--gray-600);margin-bottom:.5rem;display:flex;align-items:center;gap:.3rem;">
+            {% icon 'zap' size=12 %} Complete your profile — it's optional but unlocks:
+          </div>
+          <ul class="unlock-list">
+            <li class="{% if profile.full_name %}done{% endif %}">
+              <span class="unlock-dot" style="background:{% if profile.full_name %}#22c55e{% else %}var(--gray-300){% endif %};"></span>
+              Better job recommendations
+            </li>
+            <li class="{% if profile.experience %}done{% endif %}">
+              <span class="unlock-dot" style="background:{% if profile.experience %}#22c55e{% else %}var(--gray-300){% endif %};"></span>
+              Personalised job matches by level
+            </li>
+            <li class="{% if profile.cv %}done{% endif %}">
+              <span class="unlock-dot" style="background:{% if profile.cv %}#22c55e{% else %}var(--gray-300){% endif %};"></span>
+              CV stored & accessible anytime
+            </li>
+            <li class="{% if profile.bio %}done{% endif %}">
+              <span class="unlock-dot" style="background:{% if profile.bio %}#22c55e{% else %}var(--gray-300){% endif %};"></span>
+              Stand out with a professional bio
+            </li>
+            <li style="opacity:.6;">
+              <span class="unlock-dot" style="background:var(--gray-300);"></span>
+              Chat with Expert <span style="font-size:.65rem;background:var(--blue);color:#fff;padding:1px 5px;border-radius:6px;margin-left:2px;">Soon</span>
+            </li>
+          </ul>
+        </div>
+        {% else %}
+        <div style="background:#dcfce7;border:1px solid #bbf7d0;border-radius:10px;padding:.65rem 1rem;margin-bottom:.5rem;font-size:.75rem;color:#166534;display:flex;align-items:center;gap:.4rem;">
+          {% icon 'check-circle' size=14 %} <strong>Profile complete!</strong> You're getting the best recommendations.
+        </div>
         {% endif %}
       </div>
     </div>
