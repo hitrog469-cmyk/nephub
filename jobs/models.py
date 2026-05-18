@@ -66,7 +66,7 @@ class Job(models.Model):
     location         = models.CharField(max_length=20, choices=PROVINCE_CHOICES, default='nepal', blank=True)
     description      = models.TextField(blank=True)
     requirements     = models.TextField(blank=True)
-    deadline         = models.DateField()
+    deadline         = models.DateField(null=True, blank=True)
     apply_link       = models.URLField(max_length=500, blank=True)
     source           = models.CharField(max_length=200, blank=True)
     date_posted      = models.DateTimeField(default=timezone.now)
@@ -85,10 +85,14 @@ class Job(models.Model):
 
     @property
     def is_expired(self):
+        if not self.deadline:
+            return False  # No deadline = never expires
         return self.deadline < timezone.now().date()
 
     @property
     def days_left(self):
+        if not self.deadline:
+            return None
         return (self.deadline - timezone.now().date()).days
 
     @property

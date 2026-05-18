@@ -3,6 +3,7 @@ from functools import wraps
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import models
 from django.db.models import Q, F, Count
 from django.utils import timezone
 from django.http import JsonResponse
@@ -171,13 +172,19 @@ def _saved_ids(request):
 def _split_by_deadline(jobs_qs):
     today = timezone.now().date()
     jobs  = list(jobs_qs)
-    return [j for j in jobs if j.deadline >= today], [j for j in jobs if j.deadline < today]
+    active  = [j for j in jobs if j.deadline is None or j.deadline >= today]
+    expired = [j for j in jobs if j.deadline is not None and j.deadline < today]
+    return active, expired
 
 
 def home(request):
     today = timezone.now().date()
 
-    featured_jobs = list(Job.objects.filter(is_active=True, is_featured=True, deadline__gte=today).prefetch_related('tags')[:6])
+    featured_jobs = list(Job.objects.filter(
+        is_active=True, is_featured=True
+    ).filter(
+        models.Q(deadline__gte=today) | models.Q(deadline__isnull=True)
+    ).prefetch_related('tags')[:6])
 
     urgent_jobs = list(Job.objects.filter(
         is_active=True,
@@ -185,8 +192,9 @@ def home(request):
         deadline__lte=today + datetime.timedelta(days=7)
     ).order_by('deadline').prefetch_related('tags')[:8])
 
-    latest_jobs = list(Job.objects.filter(is_active=True, deadline__gte=today)
-                       .order_by('-date_posted').prefetch_related('tags')[:6])
+    latest_jobs = list(Job.objects.filter(is_active=True).filter(
+        models.Q(deadline__gte=today) | models.Q(deadline__isnull=True)
+    ).order_by('-date_posted').prefetch_related('tags')[:6])
 
     try:
         from blog.models import BlogPost
