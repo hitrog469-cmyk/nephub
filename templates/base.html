@@ -76,6 +76,9 @@
       <li class="nav-item">
         <a href="{% url 'about' %}" class="nav-link">About</a>
       </li>
+      <li class="nav-item">
+        <a href="{% url 'advertise' %}" class="nav-link" style="color:#f59e0b;font-weight:700;">Advertise</a>
+      </li>
     </ul>
 
     <!-- Auth -->
@@ -118,6 +121,7 @@
     <a href="{% url 'blog_list' %}">Blog &amp; News</a>
     <a href="{% url 'cv_page' %}">Upload CV</a>
     <a href="{% url 'about' %}">About</a>
+    <a href="{% url 'advertise' %}" style="color:#f59e0b;font-weight:700;">Advertise on NepHub</a>
     {% if user.is_authenticated %}
       <div class="mobile-nav-section-label">Account</div>
       {% if user.is_superuser %}
