@@ -7,8 +7,9 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.core import signing
 from django.core.mail import EmailMultiAlternatives
+from django.http import JsonResponse
 from django.conf import settings
-from .forms import SignUpForm, ProfileForm
+from .forms import SignUpForm, ProfileForm, UsernameForm
 from .models import UserProfile
 
 
@@ -139,9 +140,14 @@ def login_view(request):
 def post_login_view(request):
     """
     Central landing after any login — email or Google OAuth.
+    New Google users → choose username first.
     New users (0% profile) → profile page with welcome banner.
     Returning users → homepage.
     """
+    # New Google/social signup — ask them to pick a username
+    if request.session.pop('needs_username', False):
+        return redirect('choose_username')
+
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if profile.completion_pct == 0:
         messages.success(
@@ -152,6 +158,35 @@ def post_login_view(request):
         )
         return redirect('profile')
     return redirect('/')
+
+
+@login_required
+def choose_username_view(request):
+    """Let new Google OAuth users pick their own username."""
+    if request.method == 'POST':
+        form = UsernameForm(request.POST)
+        if form.is_valid():
+            request.user.username = form.cleaned_data['username']
+            request.user.save(update_fields=['username'])
+            messages.success(
+                request,
+                f'Welcome to NepHub, {request.user.username}! '
+                'Your account is ready — fill in your profile to unlock more features.'
+            )
+            return redirect('profile')
+    else:
+        form = UsernameForm()
+    return render(request, 'accounts/choose_username.html', {'form': form})
+
+
+# ── username availability check (AJAX) ───────────────────────────────────────
+
+def check_username_view(request):
+    username = request.GET.get('u', '').strip()
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    taken = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse({'available': not taken})
 
 
 # ── logout ────────────────────────────────────────────────────────────────────

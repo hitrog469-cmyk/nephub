@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Choose Your Username | NepHub{% endblock %}
+
+{% block content %}
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+  <div style="max-width:440px;width:100%;">
+
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="width:64px;height:64px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <svg width="28" height="28" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <h1 style="font-size:1.5rem;font-weight:800;color:var(--gray-900);margin:0 0 .4rem;">Choose your username</h1>
+      <p style="color:var(--gray-500);font-size:.9rem;line-height:1.6;margin:0;">
+        This is how you'll appear on NepHub.<br>You can only set this once, so choose wisely.
+      </p>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:1.75rem;">
+
+      {% if form.username.errors %}
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.85rem;color:#dc2626;">
+        {{ form.username.errors.0 }}
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="id_username">Username</label>
+          {{ form.username }}
+          <p style="font-size:.75rem;color:var(--gray-400);margin-top:.35rem;">
+            Letters, numbers and underscores only. Minimum 3 characters.
+          </p>
+        </div>
+
+        <!-- Live availability check display -->
+        <div id="username-status" style="font-size:.8rem;margin-bottom:1rem;min-height:18px;"></div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-lg">
+          Confirm Username →
+        </button>
+      </form>
+    </div>
+
+    <p style="text-align:center;font-size:.78rem;color:var(--gray-400);margin-top:1rem;">
+      Signed in as {{ user.email }}
+    </p>
+
+  </div>
+</div>
+
+<script>
+const input = document.getElementById('id_username');
+const status = document.getElementById('username-status');
+let timer;
+
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  const val = input.value.trim();
+  if (val.length < 3) { status.innerHTML = ''; return; }
+  timer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/accounts/check-username/?u=${encodeURIComponent(val)}`);
+      const data = await res.json();
+      if (data.available) {
+        status.innerHTML = '<span style="color:#16a34a;font-weight:600;">✓ ' + val + ' is available</span>';
+      } else {
+        status.innerHTML = '<span style="color:#dc2626;font-weight:600;">✗ Already taken</span>';
+      }
+    } catch(e) {}
+  }, 400);
+});
+</script>
+{% endblock %}
