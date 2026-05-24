@@ -125,18 +125,33 @@ def login_view(request):
             next_url = request.GET.get('next', '')
             if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                 next_url = ''
-            # First-time login → profile with welcome message
-            profile, _ = UserProfile.objects.get_or_create(user=user)
-            if profile.completion_pct == 0 and not next_url:
-                messages.success(request,
-                    f'Welcome to NepHub, {user.username}! '
-                    'Tell us a bit about yourself to unlock personalised job recommendations.')
-                return redirect('profile')
-            messages.success(request, f'Welcome back, {user.username}!')
-            return redirect(next_url or '/')
+            if next_url:
+                return redirect(next_url)
+            return redirect('post_login')     # handled centrally
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
+
+
+# ── post-login redirect (covers email login + Google OAuth) ───────────────────
+
+@login_required
+def post_login_view(request):
+    """
+    Central landing after any login — email or Google OAuth.
+    New users (0% profile) → profile page with welcome banner.
+    Returning users → homepage.
+    """
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if profile.completion_pct == 0:
+        messages.success(
+            request,
+            f'Welcome to NepHub, {request.user.username}! '
+            'Your account is ready. Filling in your profile is optional — '
+            'but it unlocks personalised job recommendations, CV storage and more.'
+        )
+        return redirect('profile')
+    return redirect('/')
 
 
 # ── logout ────────────────────────────────────────────────────────────────────
