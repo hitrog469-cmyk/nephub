@@ -339,6 +339,10 @@
     <a href="{% url 'admin_job_add' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_job_add' %}active{% endif %}">
       {% icon 'plus-circle' size=16 %} Add New Job
     </a>
+    <a href="{% url 'admin_writer' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_writer' %}active{% endif %}">
+      {% icon 'sparkles' size=16 %} AI Writer
+      <span style="margin-left:auto;background:#7c3aed;color:#fff;font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:8px;letter-spacing:.4px;">NEW</span>
+    </a>
 
     <div class="adm-nav-label" style="margin-top:.5rem;">People</div>
     <a href="{% url 'admin_users' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">

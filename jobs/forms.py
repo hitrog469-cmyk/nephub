@@ -60,7 +60,9 @@ class AdminJobForm(forms.ModelForm):
         label='Tags / Keywords',
     )
     deadline = forms.DateField(
+        required=False,
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'admin-input'}),
+        help_text='Leave blank for open/rolling opportunities with no deadline.',
     )
 
     class Meta:

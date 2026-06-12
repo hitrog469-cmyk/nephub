@@ -1,5 +1,8 @@
 import datetime
+import logging
 from functools import wraps
+
+logger = logging.getLogger('jobs')
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -511,16 +514,57 @@ def site_admin_jobs(request):
 
 @superuser_required
 def site_admin_job_add(request):
+    writer_notes = None
     if request.method == 'POST':
         form = AdminJobForm(request.POST)
         if form.is_valid():
             job = form.save()
+            request.session.pop('writer_draft', None)
             messages.success(request, f'Job "{job.title}" added successfully.')
             return redirect('admin_jobs')
     else:
-        form = AdminJobForm()
-    ctx = _admin_ctx({'form': form, 'page_title': 'Add Job', 'is_edit': False})
+        draft = request.session.get('writer_draft')
+        if draft:
+            writer_notes = draft.pop('confidence_notes', '')
+            form = AdminJobForm(initial=draft)
+        else:
+            form = AdminJobForm()
+    ctx = _admin_ctx({
+        'form': form,
+        'page_title': 'Add Job',
+        'is_edit': False,
+        'writer_notes': writer_notes,
+    })
     return render(request, 'jobs/admin/job_form.html', ctx)
+
+
+@superuser_required
+def site_admin_writer(request):
+    """AI Writer — admin drops a screenshot/PDF/text/URL, Claude drafts the listing."""
+    from .ai_writer import extract_job_draft, WriterError
+
+    error = None
+    if request.method == 'POST':
+        try:
+            draft = extract_job_draft(
+                uploaded_file=request.FILES.get('source_file'),
+                pasted_text=request.POST.get('pasted_text', ''),
+                url=request.POST.get('source_url', ''),
+            )
+            request.session['writer_draft'] = draft
+            messages.success(
+                request,
+                'Draft ready — review every field below, then hit Create Job to publish.'
+            )
+            return redirect('admin_job_add')
+        except WriterError as exc:
+            error = str(exc)
+        except Exception:
+            logger.exception('AI Writer failed')
+            error = 'Something went wrong while drafting. Try again or use a different input.'
+
+    ctx = _admin_ctx({'page_title': 'AI Writer', 'error': error})
+    return render(request, 'jobs/admin/writer.html', ctx)
 
 
 @superuser_required

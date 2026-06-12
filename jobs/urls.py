@@ -20,6 +20,8 @@ urlpatterns = [
          views.site_admin_jobs,             name='admin_jobs'),
     path('dashboard/jobs/add/',
          views.site_admin_job_add,          name='admin_job_add'),
+    path('dashboard/writer/',
+         views.site_admin_writer,           name='admin_writer'),
     path('dashboard/jobs/<int:pk>/edit/',
          views.site_admin_job_edit,         name='admin_job_edit'),
     path('dashboard/jobs/<int:pk>/delete/',

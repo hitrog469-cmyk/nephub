@@ -1,0 +1,122 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block content %}
+
+<div style="max-width:760px;">
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:16px;padding:1.75rem 2rem;margin-bottom:1.5rem;color:#fff;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(124,58,237,.3);border-radius:50%;"></div>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;">
+      {% icon 'sparkles' size=22 %}
+      <h1 style="font-size:1.35rem;font-weight:800;margin:0;">AI Writer</h1>
+      <span style="background:#7c3aed;font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:.5px;">ADMIN ONLY</span>
+    </div>
+    <p style="font-size:.875rem;opacity:.85;margin:0;line-height:1.6;max-width:540px;">
+      Drop in a screenshot, PDF, messy text, or a link — the Writer extracts everything,
+      rewrites it professionally, picks the right category, and prefills the job form.
+      You review and confirm before anything goes live.
+    </p>
+  </div>
+
+  {% if error %}
+  <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:.875rem 1.25rem;margin-bottom:1.25rem;font-size:.85rem;color:#b91c1c;display:flex;gap:.5rem;align-items:flex-start;">
+    {% icon 'alert-circle' size=16 %}
+    <span>{{ error }}</span>
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="writer-form">
+    {% csrf_token %}
+
+    <!-- 1. File drop -->
+    <div class="adm-card" style="margin-bottom:1rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title" style="display:inline-flex;align-items:center;gap:.4rem;">{% icon 'image' size=15 %} Screenshot or PDF</span>
+      </div>
+      <div style="padding:1.25rem;">
+        <label id="drop-zone" for="source_file"
+               style="display:block;border:2px dashed var(--gray-300);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;">
+          <div style="color:var(--gray-400);margin-bottom:.4rem;">{% icon 'upload-cloud' size=28 %}</div>
+          <div id="drop-label" style="font-size:.875rem;font-weight:600;color:var(--gray-600);">
+            Click to upload or drag &amp; drop
+          </div>
+          <div style="font-size:.75rem;color:var(--gray-400);margin-top:.25rem;">PNG, JPG, WebP or PDF · max 20 MB</div>
+          <input type="file" name="source_file" id="source_file" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="display:none;">
+        </label>
+      </div>
+    </div>
+
+    <!-- 2. URL -->
+    <div class="adm-card" style="margin-bottom:1rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title" style="display:inline-flex;align-items:center;gap:.4rem;">{% icon 'link' size=15 %} Or paste a link</span>
+      </div>
+      <div style="padding:1.25rem;">
+        <input type="url" name="source_url" class="admin-input" placeholder="https://example.com/job-posting">
+        <p style="font-size:.73rem;color:var(--gray-400);margin-top:.4rem;">
+          LinkedIn usually blocks bots — if the link fails, screenshot the posting and upload it above instead.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3. Raw text -->
+    <div class="adm-card" style="margin-bottom:1.25rem;">
+      <div class="adm-card-header">
+        <span class="adm-card-title" style="display:inline-flex;align-items:center;gap:.4rem;">{% icon 'type' size=15 %} Or paste raw text</span>
+      </div>
+      <div style="padding:1.25rem;">
+        <textarea name="pasted_text" class="admin-input" rows="6" style="width:100%;"
+          placeholder="Paste anything — a WhatsApp forward, Nepali notice text, an email… the Writer will sort it out."></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="adm-btn adm-btn-primary" id="writer-submit"
+            style="width:100%;justify-content:center;padding:.875rem;font-size:.95rem;">
+      {% icon 'sparkles' size=16 %} Draft the Listing
+    </button>
+    <p style="text-align:center;font-size:.73rem;color:var(--gray-400);margin-top:.5rem;">
+      Takes ~10–20 seconds. You'll review every field before publishing.
+    </p>
+  </form>
+
+</div>
+
+<script>
+const zone   = document.getElementById('drop-zone');
+const input  = document.getElementById('source_file');
+const label  = document.getElementById('drop-label');
+const form   = document.getElementById('writer-form');
+const submit = document.getElementById('writer-submit');
+
+input.addEventListener('change', () => {
+  if (input.files.length) {
+    label.textContent = '✓ ' + input.files[0].name;
+    label.style.color = '#16a34a';
+  }
+});
+['dragover','dragenter'].forEach(ev => zone.addEventListener(ev, e => {
+  e.preventDefault();
+  zone.style.borderColor = '#7c3aed';
+  zone.style.background = '#faf5ff';
+}));
+['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+  e.preventDefault();
+  zone.style.borderColor = '';
+  zone.style.background = '';
+}));
+zone.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) {
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  }
+});
+form.addEventListener('submit', () => {
+  submit.disabled = true;
+  submit.innerHTML = 'Writing your draft… hang tight';
+  submit.style.opacity = '.7';
+});
+</script>
+
+{% endblock %}

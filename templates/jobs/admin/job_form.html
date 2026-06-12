@@ -17,6 +17,16 @@
     <span style="color:var(--gray-600);">{% if job %}Edit: {{ job.title|truncatechars:40 }}{% else %}Add New Job{% endif %}</span>
   </div>
 
+  {% if writer_notes %}
+  <!-- AI Writer review notes -->
+  <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:700;color:#6d28d9;margin-bottom:.4rem;">
+      {% icon 'sparkles' size=15 %} Drafted by AI Writer — verify before publishing
+    </div>
+    <div style="font-size:.8rem;color:#7e22ce;line-height:1.6;white-space:pre-line;">{{ writer_notes }}</div>
+  </div>
+  {% endif %}
+
   <form method="post" id="job-form">
     {% csrf_token %}
 
