@@ -122,7 +122,24 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD         = not DEBUG
 SECURE_BROWSER_XSS_FILTER   = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY      = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS             = 'DENY'
+SESSION_COOKIE_HTTPONLY     = True
+CSRF_COOKIE_HTTPONLY        = True
+SESSION_COOKIE_AGE          = 60 * 60 * 24 * 14   # 2 weeks
+
+# Browsers send Origin with scheme; behind Railway's proxy Django needs
+# the https origins listed explicitly for CSRF checks on POST.
+CSRF_TRUSTED_ORIGINS = [
+    f'https://*.{h.lstrip(".")}' if h.startswith('.') else f'https://{h}'
+    for h in ALLOWED_HOSTS
+    if h not in ('localhost', '127.0.0.1')
+]
+
+# Upload sanity limits (CV uploads are also validated per-field at 5 MB;
+# the AI Writer accepts up to 20 MB PDFs/screenshots)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
 
 # ── Email ──────────────────────────────────────────────────────────
 # Dev default: print emails to terminal.

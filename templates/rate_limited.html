@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Slow Down | NepHub{% endblock %}
+
+{% block content %}
+<div style="min-height:60vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+  <div style="max-width:440px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:.75rem;">⏳</div>
+    <h1 style="font-size:1.35rem;font-weight:800;color:var(--gray-900);margin-bottom:.5rem;">Too many attempts</h1>
+    <p style="color:var(--gray-500);font-size:.92rem;line-height:1.7;margin-bottom:1.5rem;">
+      You've tried that a few too many times in a row.<br>
+      Please wait about <strong>5 minutes</strong> and try again.
+    </p>
+    <a href="/" class="btn btn-outline">Back to Homepage</a>
+  </div>
+</div>
+{% endblock %}

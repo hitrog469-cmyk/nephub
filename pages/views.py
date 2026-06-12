@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from jobs.models import Job, AdInquiry
+from accounts.throttle import rate_limit
 
 
 def about_view(request):
@@ -18,8 +19,13 @@ def cv_page_view(request):
     return render(request, 'pages/cv_page.html')
 
 
+@rate_limit('inquiry', max_attempts=5, window_seconds=3600)
 def advertise_view(request):
     if request.method == 'POST':
+        # Honeypot — real users never see or fill this field; bots do.
+        if request.POST.get('website', ''):
+            return redirect('advertise')
+
         company_name = request.POST.get('company_name', '').strip()
         contact_name = request.POST.get('contact_name', '').strip()
         email        = request.POST.get('email', '').strip()

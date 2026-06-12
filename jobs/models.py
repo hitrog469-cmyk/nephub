@@ -79,6 +79,11 @@ class Job(models.Model):
 
     class Meta:
         ordering = ['deadline', '-date_posted']
+        indexes = [
+            models.Index(fields=['is_active', 'deadline'],  name='job_active_deadline_idx'),
+            models.Index(fields=['category', 'is_active'],  name='job_cat_active_idx'),
+            models.Index(fields=['-date_posted'],           name='job_posted_idx'),
+        ]
 
     def __str__(self):
         return f"{self.title} — {self.organization}"

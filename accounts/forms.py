@@ -60,6 +60,20 @@ class ProfileForm(forms.ModelForm):
             }),
         }
 
+    CV_ALLOWED_EXTENSIONS = ('.pdf', '.doc', '.docx')
+    CV_MAX_SIZE = 5 * 1024 * 1024  # 5 MB
+
+    def clean_cv(self):
+        cv = self.cleaned_data.get('cv')
+        if cv and hasattr(cv, 'size'):
+            import os as _os
+            ext = _os.path.splitext(cv.name)[1].lower()
+            if ext not in self.CV_ALLOWED_EXTENSIONS:
+                raise forms.ValidationError('CV must be a PDF, DOC or DOCX file.')
+            if cv.size > self.CV_MAX_SIZE:
+                raise forms.ValidationError('CV file too large — maximum 5 MB.')
+        return cv
+
 
 class UsernameForm(forms.Form):
     username = forms.CharField(

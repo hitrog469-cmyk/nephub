@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from .forms import SignUpForm, ProfileForm, UsernameForm
 from .models import UserProfile
+from .throttle import rate_limit
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -61,6 +62,7 @@ def _send_verification_email(request, user):
 
 # ── signup ────────────────────────────────────────────────────────────────────
 
+@rate_limit('signup', max_attempts=6, window_seconds=600)
 def signup_view(request):
     if request.user.is_authenticated:
         return redirect('/')
@@ -115,6 +117,7 @@ def verify_email_view(request, token):
 
 # ── login ─────────────────────────────────────────────────────────────────────
 
+@rate_limit('login', max_attempts=10, window_seconds=300)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('/')

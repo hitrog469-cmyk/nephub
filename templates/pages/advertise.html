@@ -135,6 +135,9 @@
 
       <form method="post" style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.875rem;">
         {% csrf_token %}
+        <!-- honeypot: hidden from humans, bots fill it and get silently dropped -->
+        <input type="text" name="website" tabindex="-1" autocomplete="off"
+               style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
 
         <div>
           <label style="display:block;font-size:.78rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Company / Business Name <span style="color:#ef4444;">*</span></label>
