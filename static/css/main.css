@@ -1224,3 +1224,31 @@ ul { list-style: none; }
   .job-card { flex-wrap: wrap; }
   .job-actions { flex-direction: row; }
 }
+
+
+/* ── Production polish: a11y + micro-UX ─────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* Visible keyboard focus for accessibility (mouse clicks unaffected) */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Flash messages slide in instead of popping */
+.messages-wrap { animation: msg-slide .3s ease; }
+@keyframes msg-slide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons feel responsive */
+.btn:active, .btn-nav:active, .adm-btn:active { transform: scale(.97); }
+
+/* Respect users who turn off animations */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
