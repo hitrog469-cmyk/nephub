@@ -12,6 +12,17 @@ class SignUpForm(UserCreationForm):
         model = User
         fields = ('username', 'email', 'password1', 'password2')
 
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        # Block only *verified* (active) accounts. Abandoned, unverified
+        # signups with this email are cleaned up in the view so the address
+        # can be reused.
+        if User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise forms.ValidationError(
+                'An account with this email already exists. Please log in instead.'
+            )
+        return email
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']

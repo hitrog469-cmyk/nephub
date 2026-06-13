@@ -1,5 +1,45 @@
+import datetime
+import secrets
+
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
+
+class EmailVerification(models.Model):
+    """A short-lived 6-digit code used to verify a new account's email
+    before the account can log in."""
+
+    CODE_TTL_MINUTES = 15
+    MAX_ATTEMPTS = 6
+
+    user      = models.OneToOneField(User, on_delete=models.CASCADE,
+                                     related_name='email_verification')
+    code      = models.CharField(max_length=6)
+    sent_at   = models.DateTimeField(default=timezone.now)
+    attempts  = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Verification for {self.user.username}"
+
+    @staticmethod
+    def new_code():
+        return f"{secrets.randbelow(1_000_000):06d}"
+
+    def refresh_code(self):
+        """Issue a fresh code and reset the clock + attempt counter."""
+        self.code = self.new_code()
+        self.sent_at = timezone.now()
+        self.attempts = 0
+        self.save(update_fields=['code', 'sent_at', 'attempts'])
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.sent_at + datetime.timedelta(minutes=self.CODE_TTL_MINUTES)
+
+    @property
+    def too_many_attempts(self):
+        return self.attempts >= self.MAX_ATTEMPTS
 
 
 class UserProfile(models.Model):

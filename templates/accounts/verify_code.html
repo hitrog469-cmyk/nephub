@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}{% load job_extras %}
+
+{% block title %}Verify your email | NepHub{% endblock %}
+
+{% block content %}
+<div style="max-width:440px;margin:3rem auto;padding:0 1.25rem;">
+  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:16px;padding:2rem 1.75rem;text-align:center;">
+
+    <div style="width:56px;height:56px;border-radius:14px;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--blue);">
+      {% icon 'mail-check' size=28 %}
+    </div>
+
+    <h1 style="font-size:1.35rem;font-weight:800;color:var(--gray-900);margin-bottom:.4rem;">Check your email</h1>
+    <p style="font-size:.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:1.5rem;">
+      We sent a 6-digit verification code to<br>
+      <strong style="color:var(--gray-700);">{{ email }}</strong>.<br>
+      Enter it below to activate your account.
+    </p>
+
+    {% if messages %}
+      {% for msg in messages %}
+      <div style="padding:.6rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;text-align:left;
+        {% if msg.tags == 'success' %}background:#dcfce7;color:#166534;border:1px solid #bbf7d0;
+        {% elif msg.tags == 'error' %}background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;
+        {% else %}background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;{% endif %}
+        display:flex;align-items:center;gap:.5rem;">
+        {% if msg.tags == 'success' %}{% icon 'check-circle' size=14 %}{% elif msg.tags == 'error' %}{% icon 'x-circle' size=14 %}{% else %}{% icon 'info' size=14 %}{% endif %}
+        {{ msg }}
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'verify_code' %}">
+      {% csrf_token %}
+      <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             autocomplete="one-time-code" autofocus required
+             placeholder="------"
+             style="width:100%;text-align:center;font-size:1.75rem;font-weight:800;letter-spacing:.5em;
+                    padding:.75rem;border:1.5px solid var(--gray-300);border-radius:10px;color:var(--gray-900);
+                    margin-bottom:1rem;outline:none;">
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Verify &amp; Continue →</button>
+    </form>
+
+    <div style="margin-top:1.25rem;font-size:.82rem;color:var(--gray-500);">
+      Didn't get the code?
+      <form method="post" action="{% url 'resend_code' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:var(--blue);font-weight:700;cursor:pointer;font-size:.82rem;padding:0;">Resend code</button>
+      </form>
+    </div>
+    <p style="margin-top:.75rem;font-size:.75rem;color:var(--gray-400);">
+      The code expires in 15 minutes. Check your spam folder if it doesn't arrive.
+    </p>
+  </div>
+
+  <p style="text-align:center;margin-top:1.25rem;font-size:.82rem;color:var(--gray-400);">
+    Wrong email? <a href="{% url 'signup' %}" style="font-weight:600;">Start over</a>
+  </p>
+</div>
+{% endblock %}

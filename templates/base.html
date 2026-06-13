@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}NepHub — Nepal's #1 Job Portal{% endblock %}</title>
+  <title>{% block title %}NepHub — Jobs, Loksewa, Scholarships & Foreign Employment in Nepal{% endblock %}</title>
   <meta name="description" content="{% block meta_desc %}Find government jobs, Loksewa vacancies, private sector jobs, scholarships and foreign employment in Nepal — free service.{% endblock %}">
 
   <!-- Social sharing (Open Graph + Twitter) -->
   <meta property="og:site_name" content="NepHub">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-  <meta property="og:title" content="{% block og_title %}NepHub — Nepal's #1 Job Portal{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}NepHub — Jobs, Loksewa & Scholarships in Nepal{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Government jobs, Loksewa, scholarships, internships and foreign employment — all in one place, always free.{% endblock %}">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}{% endblock %}">

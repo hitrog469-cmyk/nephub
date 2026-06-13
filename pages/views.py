@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from jobs.models import Job, AdInquiry
 from accounts.throttle import rate_limit
@@ -35,6 +37,12 @@ def advertise_view(request):
 
         if not company_name or not email:
             messages.error(request, 'Company name and email are required.')
+            return render(request, 'pages/advertise.html', {'post': request.POST})
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, 'Please enter a valid email address.')
             return render(request, 'pages/advertise.html', {'post': request.POST})
 
         # Save to database
@@ -74,7 +82,7 @@ View in admin: {request.build_absolute_uri('/dashboard/inquiries/')}
         except Exception:
             pass  # Don't break the flow if email fails
 
-        messages.success(request, f'Thanks {contact_name or company_name}! We received your inquiry and will get back to you within 24 hours.')
+        messages.success(request, f'Thanks {contact_name or company_name}! We\'ve received your inquiry and will get back to you within 2–3 working days.')
         return redirect('advertise')
 
     return render(request, 'pages/advertise.html')

@@ -5,59 +5,61 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.core import signing
 from django.core.mail import EmailMultiAlternatives
 from django.http import JsonResponse
 from django.conf import settings
 from .forms import SignUpForm, ProfileForm, UsernameForm
-from .models import UserProfile
+from .models import UserProfile, EmailVerification
 from .throttle import rate_limit
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _send_verification_email(request, user):
-    token = signing.dumps(user.pk, salt='nephub-email-verify')
-    link  = request.build_absolute_uri(f'/accounts/verify-email/{token}/')
-    subject = 'Verify your NepHub account'
+def _send_code_email(user, code):
+    """Email the 6-digit verification code. Returns True if it sent."""
+    subject = 'Your NepHub verification code'
     text_body = (
         f"Hi {user.username},\n\n"
-        f"Thanks for joining NepHub! Click the link below to verify your email:\n\n"
-        f"{link}\n\n"
-        f"This link expires in 24 hours.\n\n"
+        f"Your NepHub verification code is: {code}\n\n"
+        f"Enter it on the verification page to activate your account.\n"
+        f"This code expires in {EmailVerification.CODE_TTL_MINUTES} minutes.\n\n"
+        f"If you didn't sign up for NepHub, you can ignore this email.\n\n"
         f"— The NepHub Team"
     )
     html_body = f"""
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;background:#f8fafc;border-radius:12px;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="color:#1d4ed8;font-size:1.6rem;margin:0;">NepHub</h1>
-        <p style="color:#64748b;font-size:.85rem;margin-top:4px;">Nepal's trusted job portal</p>
+        <p style="color:#64748b;font-size:.85rem;margin-top:4px;">Jobs, Loksewa &amp; scholarships in Nepal</p>
       </div>
       <div style="background:#fff;border-radius:10px;padding:28px 24px;border:1px solid #e2e8f0;">
         <h2 style="margin:0 0 12px;font-size:1.15rem;color:#1e293b;">Verify your email address</h2>
         <p style="color:#475569;font-size:.9rem;line-height:1.6;margin:0 0 20px;">
-          Hi <strong>{user.username}</strong>,<br>
-          Thanks for creating a NepHub account! Click the button below to verify your email and activate your account.
+          Hi <strong>{user.username}</strong>, enter this code to activate your account:
         </p>
         <div style="text-align:center;margin:24px 0;">
-          <a href="{link}"
-             style="background:#1d4ed8;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:.95rem;display:inline-block;">
-            Verify My Email →
-          </a>
+          <div style="display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+                      padding:16px 32px;font-size:2rem;font-weight:800;letter-spacing:.4em;color:#1d4ed8;">
+            {code}
+          </div>
         </div>
         <p style="color:#94a3b8;font-size:.78rem;text-align:center;margin:16px 0 0;">
-          This link expires in 24 hours. If you didn't sign up for NepHub, you can ignore this email.
+          This code expires in {EmailVerification.CODE_TTL_MINUTES} minutes. If you didn't sign up for NepHub, ignore this email.
         </p>
       </div>
       <p style="color:#cbd5e1;font-size:.73rem;text-align:center;margin-top:20px;">
-        © NepHub · Nepal's Job Portal
+        © NepHub · Jobs &amp; opportunities in Nepal
       </p>
     </div>
     """
     msg = EmailMultiAlternatives(subject, text_body,
                                  settings.DEFAULT_FROM_EMAIL, [user.email])
     msg.attach_alternative(html_body, 'text/html')
-    msg.send(fail_silently=True)
+    try:
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        return False
 
 
 # ── signup ────────────────────────────────────────────────────────────────────
@@ -69,50 +71,97 @@ def signup_view(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
+            email = form.cleaned_data['email']
+            # Clear out any abandoned, unverified signup using this email.
+            from django.contrib.auth import get_user_model
+            get_user_model().objects.filter(email__iexact=email, is_active=False).delete()
+
             user = form.save(commit=False)
             user.is_active = False          # blocked until email verified
             user.save()
             UserProfile.objects.get_or_create(user=user)
-            _send_verification_email(request, user)
-            return redirect('verification_sent')
+
+            ev, _ = EmailVerification.objects.get_or_create(user=user)
+            ev.refresh_code()
+            sent = _send_code_email(user, ev.code)
+
+            request.session['pending_verification_user'] = user.pk
+            if not sent:
+                messages.error(
+                    request,
+                    "We couldn't send your code right now. Tap 'Resend code' to try again."
+                )
+            return redirect('verify_code')
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
 
 
-def verification_sent_view(request):
-    return render(request, 'accounts/verification_sent.html')
-
-
-def verify_email_view(request, token):
-    try:
-        user_pk = signing.loads(token, salt='nephub-email-verify', max_age=86400)
-    except signing.SignatureExpired:
-        return render(request, 'accounts/verify_result.html', {
-            'success': False,
-            'message': 'This verification link has expired. Please sign up again.',
-        })
-    except signing.BadSignature:
-        return render(request, 'accounts/verify_result.html', {
-            'success': False,
-            'message': 'Invalid verification link.',
-        })
-
+def _pending_user(request):
     from django.contrib.auth import get_user_model
-    User = get_user_model()
-    try:
-        user = User.objects.get(pk=user_pk)
-    except User.DoesNotExist:
-        return render(request, 'accounts/verify_result.html', {
-            'success': False, 'message': 'Account not found.',
-        })
+    pk = request.session.get('pending_verification_user')
+    if not pk:
+        return None
+    return get_user_model().objects.filter(pk=pk, is_active=False).first()
 
-    user.is_active = True
-    user.save(update_fields=['is_active'])
-    return render(request, 'accounts/verify_result.html', {
-        'success': True,
-        'username': user.username,
-    })
+
+def verify_code_view(request):
+    """Enter the 6-digit code emailed at signup. Activates + logs in on success."""
+    user = _pending_user(request)
+    if user is None:
+        return redirect('signup')
+
+    ev = EmailVerification.objects.filter(user=user).first()
+
+    if request.method == 'POST':
+        entered = request.POST.get('code', '').strip()
+        if ev is None:
+            messages.error(request, 'Something went wrong. Please sign up again.')
+            return redirect('signup')
+        if ev.is_expired:
+            messages.error(request, 'That code has expired. Tap "Resend code" for a new one.')
+        elif ev.too_many_attempts:
+            messages.error(request, 'Too many attempts. Tap "Resend code" to start over.')
+        elif entered == ev.code:
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+            ev.delete()
+            request.session.pop('pending_verification_user', None)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(request, 'Email verified — welcome to NepHub!')
+            return redirect('post_login')
+        else:
+            ev.attempts += 1
+            ev.save(update_fields=['attempts'])
+            messages.error(request, 'Incorrect code. Please check and try again.')
+
+    return render(request, 'accounts/verify_code.html', {'email': _mask_email(user.email)})
+
+
+def _mask_email(email):
+    try:
+        local, domain = email.split('@', 1)
+        if len(local) <= 2:
+            shown = local[0] + '*'
+        else:
+            shown = local[0] + '*' * (len(local) - 2) + local[-1]
+        return f"{shown}@{domain}"
+    except ValueError:
+        return email
+
+
+@rate_limit('resend_code', max_attempts=4, window_seconds=600)
+def resend_code_view(request):
+    user = _pending_user(request)
+    if user is None:
+        return redirect('signup')
+    ev, _ = EmailVerification.objects.get_or_create(user=user)
+    ev.refresh_code()
+    if _send_code_email(user, ev.code):
+        messages.success(request, 'A new code is on its way to your inbox.')
+    else:
+        messages.error(request, "We couldn't send the code. Please try again in a moment.")
+    return redirect('verify_code')
 
 
 # ── login ─────────────────────────────────────────────────────────────────────
