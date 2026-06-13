@@ -430,6 +430,45 @@
       </div>
     </div>
 
+    <!-- ── CV Review (manual, by our team) ── -->
+    <div class="p-card">
+      <div class="p-card-head">
+        <span class="p-card-title">{% icon 'file-search' size=15 %} Free CV Review</span>
+        <span style="font-size:.72rem;background:#eff6ff;color:var(--blue);font-weight:700;padding:2px 9px;border-radius:10px;">Profile benefit</span>
+      </div>
+      <div class="p-card-body">
+        {% if cv_request and cv_request.status != 'completed' %}
+          <div class="alert-status" style="background:#fef9c3;color:#92400e;border:1px solid #fde68a;">
+            {% icon 'clock' size=14 %}
+            <span>Your CV review is <strong>{{ cv_request.get_status_display|lower }}</strong>. We'll email you at <strong>{{ user.email }}</strong> when it's ready.</span>
+          </div>
+        {% elif cv_request and cv_request.status == 'completed' %}
+          <div class="alert-status alert-on">
+            {% icon 'check-circle' size=14 %}
+            <span>Your last CV review is complete. Need another look? Upload your latest CV and request again.</span>
+          </div>
+          <form method="post" action="{% url 'request_cv_review' %}" style="margin-top:.75rem;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm" {% if not profile.has_cv %}disabled{% endif %}>{% icon 'refresh-cw' size=13 %} Request another review</button>
+          </form>
+        {% elif profile.has_cv %}
+          <p style="font-size:.85rem;color:var(--gray-500);line-height:1.6;margin-bottom:.875rem;">
+            Get a real person on our team to look over your CV and send back honest, practical feedback.
+            It's free, and a small team handles these — so expect a reply within a few working days.
+          </p>
+          <form method="post" action="{% url 'request_cv_review' %}">
+            {% csrf_token %}
+            <textarea name="note" rows="2" class="form-input" placeholder="Optional: what would you like feedback on? (e.g. format, foreign jobs, career switch)" style="margin-bottom:.75rem;"></textarea>
+            <button type="submit" class="btn btn-primary btn-sm">{% icon 'send' size=13 %} Request Free CV Review</button>
+          </form>
+        {% else %}
+          <p style="font-size:.85rem;color:var(--gray-500);line-height:1.6;">
+            {% icon 'info' size=14 %} Upload your CV above first, then you can request a free review from our team.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
     <!-- ── 2. Saved Jobs ── -->
     <div class="p-card">
       <div class="p-card-head">

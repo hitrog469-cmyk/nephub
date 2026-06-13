@@ -100,3 +100,31 @@ class UserProfile(models.Model):
         ]
         done = sum(fields)
         return int((done / len(fields)) * 100)
+
+
+class CVReviewRequest(models.Model):
+    """A job seeker's request for a manual CV review. Surfaced to the admin
+    dashboard and emailed to the team; the user sees its status on their
+    profile."""
+
+    STATUS_CHOICES = [
+        ('new',       'New'),
+        ('in_review', 'In Review'),
+        ('completed', 'Completed'),
+    ]
+
+    user        = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    related_name='cv_review_requests')
+    note        = models.TextField(blank=True, max_length=800,
+                                   help_text='What the user wants help with')
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    admin_notes = models.TextField(blank=True, help_text='Internal notes (not shown to the user)')
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes  = [models.Index(fields=['status', '-created_at'])]
+
+    def __str__(self):
+        return f"CV review — {self.user.username} ({self.status})"

@@ -11,4 +11,5 @@ urlpatterns = [
     path('choose-username/',             views.choose_username_view,   name='choose_username'),
     path('check-username/',              views.check_username_view,    name='check_username'),
     path('profile/',                     views.profile_view,           name='profile'),
+    path('profile/cv-review/',           views.request_cv_review,      name='request_cv_review'),
 ]

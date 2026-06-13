@@ -351,6 +351,10 @@
     <a href="{% url 'admin_subscribers' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_subscribers' %}active{% endif %}">
       {% icon 'bell' size=16 %} Subscribers
     </a>
+    <a href="{% url 'admin_cv_requests' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_cv_requests' %}active{% endif %}" style="justify-content:space-between;">
+      <span style="display:flex;align-items:center;gap:10px;">{% icon 'file-text' size=16 %} CV Reviews</span>
+      {% if new_cv_request_count %}<span style="background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;">{{ new_cv_request_count }}</span>{% endif %}
+    </a>
 
     <div class="adm-nav-label" style="margin-top:.5rem;">Revenue</div>
     <a href="{% url 'admin_inquiries' %}" class="adm-nav-link {% if request.resolver_match.url_name == 'admin_inquiries' %}active{% endif %}" style="justify-content:space-between;">

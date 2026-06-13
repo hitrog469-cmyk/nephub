@@ -8,8 +8,9 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.core.mail import EmailMultiAlternatives
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.mail import send_mail
 from .forms import SignUpForm, ProfileForm, UsernameForm
-from .models import UserProfile, EmailVerification
+from .models import UserProfile, EmailVerification, CVReviewRequest
 from .throttle import rate_limit
 
 
@@ -286,6 +287,7 @@ def profile_view(request):
         if s.job.deadline and 0 <= (s.job.deadline - today).days <= 7
     ]
     alert = JobAlert.objects.filter(email=request.user.email).first()
+    cv_request = CVReviewRequest.objects.filter(user=request.user).first()
 
     return render(request, 'accounts/profile.html', {
         'form':         form,
@@ -296,4 +298,61 @@ def profile_view(request):
         'urgent_saved': urgent_saved,
         'alert':        alert,
         'today':        today,
+        'cv_request':   cv_request,
     })
+
+
+@login_required
+@rate_limit('cv_review', max_attempts=5, window_seconds=3600)
+def request_cv_review(request):
+    """User asks for a manual CV review. Needs a CV on file. Notifies the
+    team by email and records the request for the dashboard."""
+    if request.method != 'POST':
+        return redirect('profile')
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if not profile.has_cv:
+        messages.error(request, 'Please upload your CV first, then request a review.')
+        return redirect('profile')
+
+    # Avoid duplicate open requests
+    open_req = CVReviewRequest.objects.filter(
+        user=request.user, status__in=['new', 'in_review']
+    ).first()
+    if open_req:
+        messages.info(request, 'You already have a CV review in progress — we\'ll be in touch.')
+        return redirect('profile')
+
+    note = request.POST.get('note', '').strip()[:800]
+    CVReviewRequest.objects.create(user=request.user, note=note)
+
+    # Notify the team
+    cv_link = request.build_absolute_uri(profile.cv.url) if profile.has_cv else '(no CV on file)'
+    body = (
+        f"New CV review request on NepHub\n\n"
+        f"User:     {request.user.username} <{request.user.email}>\n"
+        f"Name:     {profile.display_name}\n"
+        f"Phone:    {profile.phone or '—'}\n"
+        f"Location: {profile.location or '—'}\n"
+        f"Level:    {profile.get_experience_display() or '—'}\n"
+        f"CV:       {cv_link}\n\n"
+        f"Note from user:\n{note or '(none)'}\n\n"
+        f"---\nManage in dashboard: {request.build_absolute_uri('/dashboard/cv-requests/')}"
+    )
+    try:
+        send_mail(
+            subject=f'[NepHub] CV review request — {profile.display_name}',
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+
+    messages.success(
+        request,
+        'CV review requested! Our team will look at your CV and get back to you '
+        'by email within a few working days.'
+    )
+    return redirect('profile')

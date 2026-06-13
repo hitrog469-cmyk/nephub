@@ -44,4 +44,10 @@ urlpatterns = [
     # Admin — Subscribers
     path('dashboard/subscribers/',
          views.site_admin_subscribers,      name='admin_subscribers'),
+
+    # Admin — CV Review Requests
+    path('dashboard/cv-requests/',
+         views.site_admin_cv_requests,      name='admin_cv_requests'),
+    path('dashboard/cv-requests/<int:pk>/status/',
+         views.site_admin_cv_request_status, name='admin_cv_request_status'),
 ]

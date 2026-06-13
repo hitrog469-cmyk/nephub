@@ -1,0 +1,100 @@
+{% extends 'jobs/admin/base_admin.html' %}
+{% load job_extras %}
+
+{% block title %}CV Reviews{% endblock %}
+{% block topbar_title %}CV Review Requests{% endblock %}
+
+{% block content %}
+
+<div class="adm-stats">
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#fee2e2;color:#dc2626;">{% icon 'inbox' size=18 %}</div>
+    <div class="adm-stat-num">{{ total_new }}</div>
+    <div class="adm-stat-label">New</div>
+  </div>
+  <div class="adm-stat">
+    <div class="adm-stat-icon" style="background:#eff6ff;color:#2563eb;">{% icon 'file-text' size=18 %}</div>
+    <div class="adm-stat-num">{{ total_all }}</div>
+    <div class="adm-stat-label">All Requests</div>
+  </div>
+</div>
+
+<div class="adm-card">
+  <div class="adm-card-header">
+    <span class="adm-card-title">CV Review Requests</span>
+  </div>
+
+  <div class="adm-filter-bar">
+    <a href="{% url 'admin_cv_requests' %}" class="adm-btn adm-btn-sm {% if not status_filter %}adm-btn-primary{% else %}adm-btn-outline{% endif %}">All</a>
+    <a href="?status=new" class="adm-btn adm-btn-sm {% if status_filter == 'new' %}adm-btn-primary{% else %}adm-btn-outline{% endif %}">New</a>
+    <a href="?status=in_review" class="adm-btn adm-btn-sm {% if status_filter == 'in_review' %}adm-btn-primary{% else %}adm-btn-outline{% endif %}">In Review</a>
+    <a href="?status=completed" class="adm-btn adm-btn-sm {% if status_filter == 'completed' %}adm-btn-primary{% else %}adm-btn-outline{% endif %}">Completed</a>
+  </div>
+
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Contact</th>
+        <th>CV</th>
+        <th>Note</th>
+        <th>Requested</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in cv_requests %}
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--gray-800);">{{ req.user.profile.display_name|default:req.user.username }}</div>
+          <div style="font-size:.73rem;color:var(--gray-400);">@{{ req.user.username }}</div>
+        </td>
+        <td>
+          <div style="font-size:.8rem;">{{ req.user.email }}</div>
+          {% if req.user.profile.phone %}<div style="font-size:.73rem;color:var(--gray-400);">{{ req.user.profile.phone }}</div>{% endif %}
+        </td>
+        <td>
+          {% if req.user.profile.cv %}
+            <a href="{{ req.user.profile.cv.url }}" target="_blank" class="adm-btn adm-btn-outline adm-btn-sm">{% icon 'download' size=13 %} CV</a>
+          {% else %}
+            <span class="adm-badge adm-badge-gray">No file</span>
+          {% endif %}
+        </td>
+        <td style="max-width:240px;">
+          <div style="font-size:.8rem;color:var(--gray-600);white-space:normal;">{{ req.note|default:"—"|truncatechars:120 }}</div>
+        </td>
+        <td style="white-space:nowrap;font-size:.8rem;color:var(--gray-500);">{{ req.created_at|date:"M d, Y" }}</td>
+        <td>
+          {% if req.status == 'new' %}<span class="adm-badge adm-badge-red">New</span>
+          {% elif req.status == 'in_review' %}<span class="adm-badge adm-badge-amber">In Review</span>
+          {% else %}<span class="adm-badge adm-badge-green">Completed</span>{% endif %}
+        </td>
+        <td>
+          <form method="post" action="{% url 'admin_cv_request_status' req.pk %}" style="display:flex;gap:6px;align-items:center;">
+            {% csrf_token %}
+            <select name="status" class="admin-input" style="padding:.35rem .5rem;font-size:.78rem;width:auto;">
+              <option value="new"       {% if req.status == 'new' %}selected{% endif %}>New</option>
+              <option value="in_review" {% if req.status == 'in_review' %}selected{% endif %}>In Review</option>
+              <option value="completed" {% if req.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+            <button type="submit" class="adm-btn adm-btn-outline adm-btn-sm">Save</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--gray-400);">No CV review requests yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div class="adm-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="adm-page-btn">‹ Prev</a>{% endif %}
+    <span class="adm-page-btn current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="adm-page-btn">Next ›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

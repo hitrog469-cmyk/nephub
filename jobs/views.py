@@ -436,12 +436,14 @@ def recommendations(request):
 def _admin_ctx(extra=None):
     """Base context shared by all admin views."""
     from .models import AdInquiry
+    from accounts.models import CVReviewRequest
     ctx = {
         'total_jobs':       Job.objects.count(),
         'active_jobs':      Job.objects.filter(is_active=True).count(),
         'featured_jobs':    Job.objects.filter(is_featured=True).count(),
         'expired_jobs':     Job.objects.filter(deadline__lt=timezone.now().date()).count(),
         'new_inquiry_count': AdInquiry.objects.filter(status='new').count(),
+        'new_cv_request_count': CVReviewRequest.objects.filter(status='new').count(),
     }
     if extra:
         ctx.update(extra)
@@ -704,3 +706,44 @@ def site_admin_subscribers(request):
         'total_subs':     JobAlert.objects.count(),
     })
     return render(request, 'jobs/admin/subscribers.html', ctx)
+
+
+# ── Admin: CV Review Requests ──────────────────────────────────────
+@superuser_required
+def site_admin_cv_requests(request):
+    from accounts.models import CVReviewRequest
+    status_filter = request.GET.get('status', '')
+    qs = (CVReviewRequest.objects
+          .select_related('user', 'user__profile')
+          .order_by('-created_at'))
+    if status_filter in ('new', 'in_review', 'completed'):
+        qs = qs.filter(status=status_filter)
+
+    paginator = Paginator(qs, 25)
+    page_obj  = paginator.get_page(request.GET.get('page'))
+
+    ctx = _admin_ctx({
+        'cv_requests':   page_obj,
+        'page_obj':      page_obj,
+        'status_filter': status_filter,
+        'total_new':     CVReviewRequest.objects.filter(status='new').count(),
+        'total_all':     CVReviewRequest.objects.count(),
+    })
+    return render(request, 'jobs/admin/cv_requests.html', ctx)
+
+
+@superuser_required
+def site_admin_cv_request_status(request, pk):
+    from accounts.models import CVReviewRequest
+    if request.method != 'POST':
+        return redirect('admin_cv_requests')
+    req = get_object_or_404(CVReviewRequest, pk=pk)
+    new_status = request.POST.get('status', 'new')
+    if new_status in ('new', 'in_review', 'completed'):
+        req.status = new_status
+        notes = request.POST.get('admin_notes')
+        if notes is not None:
+            req.admin_notes = notes.strip()
+        req.save(update_fields=['status', 'admin_notes', 'updated_at'])
+        messages.success(request, f'CV review for {req.user.username} marked as {req.get_status_display()}.')
+    return redirect('admin_cv_requests')
