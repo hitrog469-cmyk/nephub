@@ -17,9 +17,10 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 _raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
-ALLOWED_HOSTS += ['healthcheck.railway.app', '.railway.app']
-if os.environ.get('RAILWAY_PUBLIC_DOMAIN'):
-    ALLOWED_HOSTS.append(os.environ['RAILWAY_PUBLIC_DOMAIN'])
+ALLOWED_HOSTS += ['.vercel.app', '.now.sh']
+for _var in ('VERCEL_URL', 'VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_BRANCH_URL'):
+    if os.environ.get(_var):
+        ALLOWED_HOSTS.append(os.environ[_var])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,9 +79,21 @@ WSGI_APPLICATION = 'nephub.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
+        # Serverless (Vercel) opens a fresh function per request; persistent
+        # connections would exhaust Postgres. Keep this at 0.
+        conn_max_age=0,
         conn_health_checks=True,
     )
+}
+
+# Database-backed cache. On serverless an in-memory cache is per-invocation,
+# so the auth rate limiter (accounts/throttle.py) wouldn't hold. Run
+# `manage.py createcachetable` once to create the backing table.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'nephub_cache',
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -167,7 +180,11 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ── django-allauth config ──────────────────────────────────────────
-ACCOUNT_EMAIL_VERIFICATION      = os.environ.get('EMAIL_VERIFICATION', 'none')  # set to 'mandatory' in Railway once SMTP is configured
+ACCOUNT_EMAIL_VERIFICATION      = os.environ.get('EMAIL_VERIFICATION', 'none')  # set to 'mandatory' once SMTP is configured
+# Email a 6-digit code instead of a link; login is blocked until verified.
+# allauth requires this to pair with mandatory verification, so it switches
+# on automatically when EMAIL_VERIFICATION=mandatory is set in production.
+ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = (ACCOUNT_EMAIL_VERIFICATION == 'mandatory')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL   = 'https' if not DEBUG else 'http'
 ACCOUNT_LOGIN_METHODS           = {'email'}
 ACCOUNT_SIGNUP_FIELDS           = ['email*', 'password1*', 'password2*']
@@ -206,13 +223,10 @@ LOGGING = {
         },
     },
     'handlers': {
+        # Console only. Serverless filesystems are read-only, so a FileHandler
+        # writing to disk crashes Django on startup (FUNCTION_INVOCATION_FAILED).
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'nephub.log',
             'formatter': 'verbose',
         },
     },
@@ -222,12 +236,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'WARNING',
             'propagate': False,
         },
         'jobs': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
