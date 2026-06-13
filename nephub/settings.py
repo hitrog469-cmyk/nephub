@@ -155,17 +155,20 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
 
 # ── Email ──────────────────────────────────────────────────────────
-# Dev default: print emails to terminal.
-# Production: set EMAIL_BACKEND=smtp and fill the SMTP vars in .env.
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend',
-)
 EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# Auto-select SMTP once Gmail credentials are present; otherwise print to the
+# console (dev). So in production you only need EMAIL_HOST_USER + _PASSWORD.
+_default_email_backend = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', _default_email_backend)
 
 ADMIN_EMAIL        = os.environ.get('ADMIN_EMAIL', 'admin@nephub.com')
 DEFAULT_FROM_EMAIL = 'NepHub <noreply@nephub.com>'
